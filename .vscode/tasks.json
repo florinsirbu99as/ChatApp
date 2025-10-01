@@ -18,22 +18,6 @@
             }
         },
         {
-            "label": "Start Socket.io Server",
-            "type": "shell",
-            "command": "node server.js",
-            "group": "build",
-            "isBackground": true,
-            "problemMatcher": [],
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": false,
-                "panel": "new",
-                "showReuseMessage": true,
-                "clear": false
-            }
-        },
-        {
             "label": "Build Production",
             "type": "shell",
             "command": "npm run build",
@@ -41,12 +25,11 @@
             "problemMatcher": []
         },
         {
-            "label": "Run Both Servers",
-            "dependsOrder": "parallel",
-            "dependsOn": [
-                "Start Chat App Development",
-                "Start Socket.io Server"
-            ]
+            "label": "Install Dependencies",
+            "type": "shell",
+            "command": "npm install",
+            "group": "build",
+            "problemMatcher": []
         }
     ]
 }

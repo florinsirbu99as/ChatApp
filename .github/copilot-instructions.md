@@ -1,16 +1,15 @@
 # Chat App Project Instructions
 
 ## Project Overview
-This is a mobile-responsive chat application built with Next.js, TypeScript, and Tailwind CSS. The app supports real-time messaging and is optimized for iOS and Android devices through PWA capabilities.
+This is a mobile-responsive chat application built with Next.js, TypeScript, and Tailwind CSS. The app uses REST APIs for messaging and is optimized for iOS and Android devices through PWA capabilities.
 
 ## Technology Stack
-- **Framework**: Next.js 14+ with App Router
+- **Framework**: Next.js 15+ with App Router
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Real-time**: Socket.io
+- **Data Fetching**: SWR + Axios for HTTP requests
 - **Mobile**: PWA (Progressive Web App)
 - **Authentication**: NextAuth.js
-- **Database**: MongoDB with Mongoose
 - **Deployment**: Vercel
 
 ## Development Guidelines
@@ -18,8 +17,9 @@ This is a mobile-responsive chat application built with Next.js, TypeScript, and
 - Implement proper TypeScript types
 - Follow Next.js App Router conventions
 - Use Tailwind CSS for styling
-- Implement real-time messaging
+- Use SWR for data fetching and caching
 - Ensure PWA functionality for mobile devices
+- Use HTTP polling for real-time updates
 
 ## Checklist Progress:
 - [x] ✅ Verify that the copilot-instructions.md file in the .github directory is created.
