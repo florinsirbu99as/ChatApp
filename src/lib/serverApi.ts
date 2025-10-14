@@ -3,8 +3,8 @@
 export async function callApi<T>(
   request: string,
   params: Record<string, string | number | undefined> = {},
-  method: 'GET' | 'POST' = 'POST',
-  token?: string
+  method: 'GET' | 'POST' = 'POST',  //default POST
+  token?: string  //optional
 ): Promise<T> {
   const base = process.env.API_BASE_URL!;
   const headers: HeadersInit = { 'Content-Type': 'application/x-www-form-urlencoded' };

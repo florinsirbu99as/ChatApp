@@ -80,7 +80,7 @@ export default function HomePage() {
                     Forgot password?
                   </button>
                 </div>
-
+                /*____________BUTTON SIGN IN START________________ */
                 <button
                   onClick={async () => {
                     const email = (document.querySelector('input[type="email"]') as HTMLInputElement).value;
@@ -112,6 +112,7 @@ export default function HomePage() {
                 >
                   Sign In
                 </button>
+                /*____________BUTTON SIGN IN END________________ */
 
 
                 <div className="text-center">
@@ -201,7 +202,7 @@ export default function HomePage() {
                     <button className="text-blue-500 hover:text-blue-700">Privacy Policy</button>
                   </span>
                 </div>
-
+                /*____________BUTTON REGISTER START________________ */
                 <button
                   onClick={async () => {
                     const firstName = (document.querySelector('input[placeholder="John"]') as HTMLInputElement)?.value;
@@ -236,7 +237,7 @@ export default function HomePage() {
                       console.log("Antwort vom Server:", data);
 
                       if (res.ok) {
-                        alert("You created an ccount! You can now sign in.");
+                        alert("You created an account! You can now sign in.");
                         window.location.reload(); 
                       } else {
                         alert("Error: " + (data.error || "Unknown error"));
@@ -250,6 +251,7 @@ export default function HomePage() {
                 >
                   Create Account
                 </button>
+                /*____________BUTTON REGISTER END________________ */
 
 
                 <div className="text-center pt-1">

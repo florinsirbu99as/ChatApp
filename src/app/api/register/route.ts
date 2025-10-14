@@ -1,4 +1,3 @@
-// src/app/api/register/route.ts
 import { NextResponse } from 'next/server'
 import { callApi } from '@/lib/serverApi'
 
@@ -12,13 +11,14 @@ export async function POST(req: Request) {
   if (!userid || !password)
     return NextResponse.json({ error: 'Email and password required' }, { status: 400 })
 
-  const data = await callApi<{ token: string }>(
+  const data = await callApi<{ token: string }>(  //Rückgabewert token in data gespeichert
     'register',
     { userid, password, nickname, fullname },
     'POST'
   )
-  //Test
+  
   const res = NextResponse.json({ ok: true })
+  //cookie token, wird bei jedem request mitgeschickt
   res.cookies.set('token', data.token, {
     httpOnly: true,
     secure: true,
