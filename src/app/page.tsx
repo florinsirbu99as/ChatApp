@@ -81,9 +81,38 @@ export default function HomePage() {
                   </button>
                 </div>
 
-                <button className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                <button
+                  onClick={async () => {
+                    const email = (document.querySelector('input[type="email"]') as HTMLInputElement).value;
+                    const password = (document.querySelector('input[type="password"]') as HTMLInputElement).value;
+
+                    const formData = new FormData();
+                    formData.append('userid', email);
+                    formData.append('password', password);
+
+                    try {
+                      const res = await fetch('/api/login', {
+                        method: 'POST',
+                        body: formData,
+                      });
+
+                      const data = await res.json();
+                      console.log('Antwort vom Server:', data);
+
+                      if (res.ok) {
+                        alert('Log in succesful!');
+                      } else {
+                        alert('Error: ' + (data.error || 'Unknown error'));
+                      }
+                    } catch (err) {
+                      console.error('Fehler beim Login:', err);
+                    }
+                  }}
+                  className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                >
                   Sign In
                 </button>
+
 
                 <div className="text-center">
                   <p className="text-gray-600">
@@ -173,9 +202,55 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <button className="w-full bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors">
+                <button
+                  onClick={async () => {
+                    const firstName = (document.querySelector('input[placeholder="John"]') as HTMLInputElement)?.value;
+                    const lastName = (document.querySelector('input[placeholder="Doe"]') as HTMLInputElement)?.value;
+                    const email = (document.querySelector('input[placeholder="john.doe@example.com"]') as HTMLInputElement)?.value;
+                    const password = (document.querySelector('input[placeholder="Create a strong password"]') as HTMLInputElement)?.value;
+                    const confirm = (document.querySelector('input[placeholder="Confirm your password"]') as HTMLInputElement)?.value;
+
+                    if (!firstName || !lastName || !email || !password) {
+                      alert("Please fill in all required fields.");
+                      return;
+                    }
+
+                    if (password !== confirm) {
+                      alert("Passwords do not match!");
+                      return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append("userid", email);
+                    formData.append("password", password);
+                    formData.append("nickname", firstName);
+                    formData.append("fullname", `${firstName} ${lastName}`);
+
+                    try {
+                      const res = await fetch("/api/register", {
+                        method: "POST",
+                        body: formData,
+                      });
+
+                      const data = await res.json();
+                      console.log("Antwort vom Server:", data);
+
+                      if (res.ok) {
+                        alert("You created an ccount! You can now sign in.");
+                        window.location.reload(); 
+                      } else {
+                        alert("Error: " + (data.error || "Unknown error"));
+                      }
+                    } catch (err) {
+                      console.error("Registration failed:", err);
+                      alert("Network error or server unavailable.");
+                    }
+                  }}
+                  className="w-full bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                >
                   Create Account
                 </button>
+
 
                 <div className="text-center pt-1">
                   <p className="text-gray-600">
