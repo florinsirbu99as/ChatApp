@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     { userid, password, nickname, fullname },
     'POST'
   )
-
+  //Test
   const res = NextResponse.json({ ok: true })
   res.cookies.set('token', data.token, {
     httpOnly: true,
