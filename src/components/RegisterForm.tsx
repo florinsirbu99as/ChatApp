@@ -19,10 +19,10 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
     }
 
     const formData = new FormData();
-    formData.append("userid", username);
-    formData.append("password", password);
-    formData.append("nickname", firstName);
-    formData.append("fullname", `${firstName} ${lastName}`);
+  formData.append("userid", username);
+  formData.append("password", password);
+  formData.append("firstname", firstName);
+  formData.append("lastname", lastName);
 
     try {
       const res = await fetch("/api/register", {
