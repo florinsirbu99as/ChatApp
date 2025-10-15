@@ -11,11 +11,6 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700">
       <div className="flex items-center justify-center min-h-screen p-4 py-8">
         <div className="w-full max-w-md max-h-screen overflow-y-auto">
-          {/* Logo/Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">ChatApp</h1>
-            <p className="text-blue-100">Connect with friends instantly</p>
-          </div>
 
           {/* Auth Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-6 mb-8">
@@ -49,13 +44,6 @@ export default function HomePage() {
             ) : (
               <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
             )}
-          </div>
-
-          {/* Footer */}
-          <div className="text-center mt-8">
-            <p className="text-blue-100 text-sm">
-              © 2025 ChatApp. Made with ❤️ for seamless communication.
-            </p>
           </div>
         </div>
       </div>
