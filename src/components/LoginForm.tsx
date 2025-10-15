@@ -1,0 +1,90 @@
+'use client'
+
+export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
+  const handleLogin = async () => {
+    const username = (document.querySelector('input[name="username"]') as HTMLInputElement).value;
+    const password = (document.querySelector('input[type="password"]') as HTMLInputElement).value;
+
+    const formData = new FormData();
+    formData.append('userid', username);
+    formData.append('password', password);
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+      console.log('Antwort vom Server:', data);
+
+      if (res.ok) {
+        alert('Log in successful!');
+      } else {
+        alert('Error: ' + (data.error || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Fehler beim Login:', err);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+        Welcome Back
+      </h2>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Username
+        </label>
+        <input
+          type="text"
+          name="username"
+          placeholder="Enter your username"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Password
+        </label>
+        <input
+          type="password"
+          placeholder="Enter your password"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+        />
+      </div>
+
+      <div className="flex items-center justify-between">
+        <label className="flex items-center">
+          <input type="checkbox" className="rounded border-gray-300 text-blue-500 focus:ring-blue-500" />
+          <span className="ml-2 text-sm text-gray-600">Remember me</span>
+        </label>
+        <button className="text-sm text-blue-500 hover:text-blue-700">
+          Forgot password?
+        </button>
+      </div>
+
+      <button 
+        onClick={handleLogin}
+        className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+      >
+        Sign In
+      </button>
+
+      <div className="text-center">
+        <p className="text-gray-600">
+          Don't have an account?{' '}
+          <button
+            onClick={onSwitchToRegister}
+            className="text-blue-500 hover:text-blue-700 font-medium"
+          >
+            Sign up
+          </button>
+        </p>
+      </div>
+    </div>
+  )
+}

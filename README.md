@@ -25,11 +25,15 @@ A modern, responsive chat application built with **Next.js 15**, **TypeScript**,
    npm install
    ```
 
-3. **Configure environment (optional):**
+3. **Configure environment:**
    ```bash
    cp .env.example .env.local
    ```
-   Edit `.env.local` with your API endpoints.
+   Edit `.env.local` and set the API URL:
+   ```bash
+   API_BASE_URL=https://www2.hs-esslingen.de/~melcher/map/chat/api/
+   ```
+   **Note:** This is already set to the HS Esslingen Chat API by default.
 
 4. **Start development server:**
    ```bash
