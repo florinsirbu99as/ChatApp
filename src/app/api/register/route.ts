@@ -1,3 +1,4 @@
+
 import { NextResponse } from 'next/server'
 import { callApi } from '@/lib/serverApi'
 
@@ -6,21 +7,24 @@ export async function POST(req: Request) {
     const form = await req.formData()
     const userid = String(form.get('userid') || '')
     const password = String(form.get('password') || '')
-    const nickname = String(form.get('nickname') || '')
-    const fullname = String(form.get('fullname') || '')
+    const firstname = String(form.get('firstname') || '')
+    const lastname = String(form.get('lastname') || '')
 
-    console.log('[Register] Received:', { userid, nickname, fullname })
+    console.log('[Register] Received:', { userid, firstname, lastname })
 
-    if (!userid || !password) {
-      return NextResponse.json({ error: 'Username and password required' }, { status: 400 })
+    if (!userid || !password || !firstname || !lastname) {
+      return NextResponse.json({ error: 'Username, password, firstname and lastname required' }, { status: 400 })
     }
 
-      // Call external API (default method is GET)
-      const data = await callApi<{ token: string }>(
-        'register',
-        { userid, password, nickname, fullname }
-        // 'GET' ist der Default in serverApi.ts
-      )
+    // Die API erwartet nickname und fullname
+    const nickname = firstname
+    const fullname = `${firstname} ${lastname}`
+
+    // Call external API (default method is GET)
+    const data = await callApi<{ token: string }>(
+      'register',
+      { userid, password, nickname, fullname }
+    )
 
     console.log('[Register] Success, token received')
 

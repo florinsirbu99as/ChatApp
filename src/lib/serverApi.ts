@@ -1,19 +1,19 @@
 // src/lib/serverApi.ts
 
 export async function callApi<T>(
-  request: string,
+  request: string, //login, register
   params: Record<string, string | number | undefined> = {},
   method: 'GET' | 'POST' = 'GET',  // Changed default to GET
   token?: string  // optional
 ): Promise<T> {
   const base = process.env.API_BASE_URL!;
   
-  const urlParams = new URLSearchParams();
+  const urlParams = new URLSearchParams(); //Parameter als URL Parameter vorbereiten
   urlParams.set('request', request);
   for (const [k, v] of Object.entries(params)) {
     if (v != null) urlParams.set(k, String(v));
   }
-  if (token) urlParams.set('token', token);
+  if (token) urlParams.set('token', token); // falls vorhanden Token hinzufügen
 
   let url: string;
   let fetchOptions: RequestInit;
