@@ -7,15 +7,19 @@ export default function AccountActions() {
       const res = await fetch('/api/logout', { method: 'POST' })
       console.log('[Logout] Antwort:', res.status);
       if (res.ok) {
-        alert('Logged out.')
-        window.location.reload()
+        // Go back to the login page
+        window.location.href = '/'
       } else {
         const data = await res.json().catch(() => ({}))
         alert('Error while logging out: ' + (data?.error || 'Unknown error'))
+        // As a fallback, still send the user to login
+        window.location.href = '/'
       }
     } catch (err) {
       console.error('Logout-Error:', err)
       alert('Network error while logging out.')
+      // Fallback redirect to login even if request errored
+      window.location.href = '/'
     }
   }
 
@@ -26,14 +30,19 @@ export default function AccountActions() {
       const res = await fetch('/api/deregister', { method: 'POST' })
       if (res.ok) {
         alert('Account deleted.')
-        window.location.reload()
+        // After account deletion, go to login
+        window.location.href = '/'
       } else {
         const data = await res.json().catch(() => ({}))
         alert('Error deleting your account: ' + (data?.error || 'Unknown error'))
+        // Safe fallback redirect
+        window.location.href = '/'
       }
     } catch (err) {
       console.error('Deregistration-error:', err)
       alert('Netzwork-error while deleting.')
+      // Fallback redirect on error
+      window.location.href = '/'
     }
   }
 

@@ -19,12 +19,14 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
       console.log('Antwort vom Server:', data);
 
       if (res.ok) {
-        alert('Log in successful!');
+        // Redirect to the simple home page
+        window.location.href = '/home'
       } else {
         alert('Error: ' + (data.error || 'Unknown error'));
       }
     } catch (err) {
       console.error('Fehler beim Login:', err);
+      alert('Network error or server unavailable.')
     }
   };
   

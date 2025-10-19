@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import LoginForm from '@/components/LoginForm'
 import RegisterForm from '@/components/RegisterForm'
-import AccountActions from '@/components/AccountActions'
 
 export default function HomePage() {
   const [isLogin, setIsLogin] = useState(true)
@@ -45,16 +44,6 @@ export default function HomePage() {
             ) : (
               <RegisterForm onSwitchToLogin={() => setIsLogin(true)} />
             )}
-          </div>
-
-
-          <AccountActions />
-
-          {/* Footer */}
-          <div className="text-center mt-8">
-            <p className="text-blue-100 text-sm">
-              © 2025 ChatApp. Made with ❤️ for seamless communication.
-            </p>
           </div>
         </div>
       </div>
