@@ -19,10 +19,10 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
     }
 
     const formData = new FormData();
-  formData.append("userid", username);
-  formData.append("password", password);
-  formData.append("firstname", firstName);
-  formData.append("lastname", lastName);
+    formData.append("userid", username);
+    formData.append("password", password);
+    formData.append("firstname", firstName);
+    formData.append("lastname", lastName);
 
     try {
       const res = await fetch("/api/register", {
@@ -108,7 +108,7 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
         />
       </div>
 
-      <div className="flex items-start pt-1">
+      {/*<div className="flex items-start pt-1">
         <input 
           type="checkbox" 
           className="mt-1 rounded border-gray-300 text-blue-500 focus:ring-blue-500" 
@@ -120,6 +120,7 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
           <button className="text-blue-500 hover:text-blue-700">Privacy Policy</button>
         </span>
       </div>
+      */}
 
       <button 
         onClick={handleRegister}

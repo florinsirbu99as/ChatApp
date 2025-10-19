@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
       const data = await callApi<{ token: string }>(
         'login',
-        { userid, password }
+        { userid, password }      
         // 'GET' ist der Default in serverApi.ts
       )
 
