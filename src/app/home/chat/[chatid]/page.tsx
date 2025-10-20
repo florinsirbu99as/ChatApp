@@ -53,6 +53,45 @@ export default function ChatPage() {
     router.push('/home')
   }
 
+  const formatMessageDate = (dateValue: string | number | undefined) => {
+    if (!dateValue) return ''
+    
+    try {
+      let date: Date
+      
+      // Try parsing as number (Unix timestamp in milliseconds or seconds)
+      if (typeof dateValue === 'number') {
+        const timestamp = dateValue
+        // If it looks like seconds (reasonable Unix timestamp), convert to milliseconds
+        date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
+      } else if (typeof dateValue === 'string') {
+        // Try parsing as string
+        date = new Date(dateValue)
+        
+        // If invalid, try other formats
+        if (isNaN(date.getTime())) {
+          // Try Unix timestamp string
+          const timestamp = parseInt(dateValue, 10)
+          if (!isNaN(timestamp)) {
+            date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
+          }
+        }
+      } else {
+        return ''
+      }
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        return `${dateValue} (Invalid date format)`
+      }
+      
+      return date.toLocaleString()
+    } catch (err) {
+      console.error('Error formatting date:', dateValue, err)
+      return `${dateValue} (Error parsing)`
+    }
+  }
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -133,7 +172,7 @@ export default function ChatPage() {
               {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
               {(message.timestamp || message.time) && (
                 <div style={{ fontSize: '0.85em', color: '#6c757d', marginTop: 4 }}>
-                  {new Date(message.timestamp || message.time || '').toLocaleString()}
+                  {formatMessageDate(message.timestamp || message.time || '')}
                 </div>
               )}
             </div>
