@@ -17,22 +17,24 @@ export default function HomePage() {
 
   const fetchChats = async () => {
     try {
+      //ruf die API /api/chats auf, um die Chat-Liste zu holen
       setLoading(true)
       const response = await fetch('/api/chats')
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch chats')
       }
-
+      //speicher die Daten
       const data = await response.json()
       console.log('Fetched chats data:', data)
-      
-      // Handle if data is an array or if it's wrapped in an object
+      //Prüfe das Format der Daten
+      //ist data Array?
       if (Array.isArray(data)) {
         setChats(data)
+      //ist data Objekt?
       } else if (data && typeof data === 'object') {
-        // Check if it has a chats property or similar
         setChats(data.chats || data.data || [])
+      //sonst leere Liste setzen
       } else {
         setChats([])
       }
@@ -43,21 +45,22 @@ export default function HomePage() {
       setLoading(false)
     }
   }
-
+  //Beim clicken gehe zur chat-Seite mit der jeweiligen chatid
   const handleChatClick = (chatid: string) => {
     router.push(`/home/chat/${chatid}`)
   }
 
   return (
+    // Inhalt der Home-Seite
     <main style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h1>Home</h1>
       <p>You are logged in.</p>
-      
+
       <div>
         <h2>Your Chats</h2>
         {loading && <p>Loading chats...</p>}
         {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-        
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
           {Array.isArray(chats) && chats.map((chat) => (
             <button
@@ -76,7 +79,7 @@ export default function HomePage() {
               {chat.chatname || `Chat ${chat.chatid}`}
             </button>
           ))}
-          
+
           {!loading && (!Array.isArray(chats) || chats.length === 0) && (
             <p>No chats available yet.</p>
           )}

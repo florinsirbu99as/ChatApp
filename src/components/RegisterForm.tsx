@@ -108,20 +108,6 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
         />
       </div>
 
-      {/*<div className="flex items-start pt-1">
-        <input 
-          type="checkbox" 
-          className="mt-1 rounded border-gray-300 text-blue-500 focus:ring-blue-500" 
-        />
-        <span className="ml-2 text-sm text-gray-600 leading-tight">
-          I agree to the{' '}
-          <button className="text-blue-500 hover:text-blue-700">Terms of Service</button>
-          {' '}and{' '}
-          <button className="text-blue-500 hover:text-blue-700">Privacy Policy</button>
-        </span>
-      </div>
-      */}
-
       <button 
         onClick={handleRegister}
         className="w-full bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors"

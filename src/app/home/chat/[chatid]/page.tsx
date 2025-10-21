@@ -15,6 +15,7 @@ export default function ChatPage() {
   const chatid = params.chatid as string
 
   useEffect(() => {
+    // Laden, falls chatid existiert
     if (chatid) {
       fetchMessages()
     }
@@ -22,22 +23,23 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
+      // Ruft die API /api/messages auf, um die Nachrichten für die gegebene chatid zu holen
       setLoading(true)
       const response = await fetch(`/api/messages?chatid=${chatid}&fromid=0`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch messages')
       }
-
+      // Speichert die Daten
       const data = await response.json()
       console.log('Fetched messages data:', data)
-      
-      // Handle if data is an array or if it's wrapped in an object
+      // Ist data Array?
       if (Array.isArray(data)) {
         setMessages(data)
+        // Ist data Objekt?
       } else if (data && typeof data === 'object') {
-        // Check if it has a messages property or similar
         setMessages(data.messages || data.data || [])
+        // Sonst leere Liste setzen
       } else {
         setMessages([])
       }
@@ -48,58 +50,58 @@ export default function ChatPage() {
       setLoading(false)
     }
   }
-
+  // Zurück zur Home-Seite
   const handleBack = () => {
     router.push('/home')
   }
-
+  // Datum formatieren
   const formatMessageDate = (dateValue: string | number | undefined) => {
     if (!dateValue) return ''
     
     try {
       let date: Date
-      
-      // Try parsing as number (Unix timestamp in milliseconds or seconds)
+      // Verschiedene mögliche Formate behandeln
       if (typeof dateValue === 'number') {
         const timestamp = dateValue
-        // If it looks like seconds (reasonable Unix timestamp), convert to milliseconds
+        // Falls es wie Sekunden aussieht (vernünftiger Unix-Timestamp), in Millisekunden umwandeln
         date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
       } else if (typeof dateValue === 'string') {
-        // Try parsing as string
+        // Versuche, als String zu parsen
         date = new Date(dateValue)
-        
-        // If invalid, try other formats
+        // Falls ungültig, andere Formate versuchen
         if (isNaN(date.getTime())) {
-          // Try Unix timestamp string
+          // Versuche Unix-Timestamp als String
           const timestamp = parseInt(dateValue, 10)
           if (!isNaN(timestamp)) {
-            date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
+        date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
           }
         }
       } else {
         return ''
       }
       
-      // Check if date is valid
+      // Prüfe ob Datum gültig ist
       if (isNaN(date.getTime())) {
         return `${dateValue} (Invalid date format)`
       }
-      
+      // Gibt das formatierte Datum zurück
       return date.toLocaleString()
     } catch (err) {
       console.error('Error formatting date:', dateValue, err)
       return `${dateValue} (Error parsing)`
     }
   }
-
+  // Nachricht senden
   const handleSendMessage = async (e: React.FormEvent) => {
+    // Verhindert das Standardformularverhalten, also Seite nicht neuladen
     e.preventDefault()
-    
+    // Überprüft, ob der Nachrichtentext leer ist
     if (!messageText.trim()) return
-
     try {
       setSending(true)
+      // Ruft die
       const response = await fetch('/api/messages/send', {
+        //Sende die Nachricht im Body der Anfrage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,7 +111,7 @@ export default function ChatPage() {
           chatid: chatid,
         }),
       })
-
+      //Lese die Antwort
       const responseData = await response.json()
       console.log('Send message response:', responseData)
 
@@ -117,10 +119,10 @@ export default function ChatPage() {
         throw new Error(responseData.error || 'Failed to send message')
       }
 
-      // Clear the input
+      // Eingabefeld leeren
       setMessageText('')
       
-      // Refresh messages to show the new one
+      // Nachrichten neu laden, um die neue anzuzeigen
       await fetchMessages()
     } catch (err) {
       console.error('Error sending message:', err)
@@ -154,8 +156,9 @@ export default function ChatPage() {
         <h2>Messages</h2>
         {loading && <p>Loading messages...</p>}
         {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-        
+        {/* Nachrichtenliste */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
+          {/* Zeige jede Nachricht an */}
           {Array.isArray(messages) && messages.map((message) => (
             <div
               key={message.id || message.messageid || `${message.userid}-${message.time}`}
@@ -184,7 +187,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Message Input Form */}
+      {/* Nachrichten-Eingabeformular */}
       <form onSubmit={handleSendMessage} style={{ marginTop: 16 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input

@@ -59,24 +59,6 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
         />
       </div>
 
-      {/*
-      <div className="flex items-center justify-between">
-        <label className="flex items-center">
-          <input type="checkbox" className="rounded border-gray-300 text-blue-500 focus:ring-blue-500" />
-          <span className="ml-2 text-sm text-gray-600">Remember me</span>
-        </label>
-        <button
-          type="button"
-          onClick={handleForgotPassword}
-          className="text-sm text-blue-500 hover:text-blue-700"
-        >
-          Forgot password?
-        </button>
-
-      </div>
-      */}
-      
-
       <button 
         onClick={handleLogin}
         className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
