@@ -14,6 +14,13 @@ export default function ChatPage() {
   const params = useParams()
   const chatid = params.chatid as string
 
+  // eigene UserId speichern
+  const [myUserId, setMyUserId] = useState<string | null>(null)
+  useEffect(() => {
+    const id = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
+    setMyUserId(id)
+  }, [])
+
   useEffect(() => {
     // Laden, falls chatid existiert
     if (chatid) {
@@ -134,8 +141,20 @@ export default function ChatPage() {
   }
 
   return (
-    <main style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+  <main style={{ padding: 16 }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '80vh',
+        border: '1px solid #eee',
+        borderRadius: 12,
+        overflow: 'hidden',
+        background: '#fff',
+      }}
+    >
+      {/* Kopfzeile */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>
         <button
           onClick={handleBack}
           style={{
@@ -144,21 +163,21 @@ export default function ChatPage() {
             color: 'white',
             border: 'none',
             borderRadius: 4,
-            cursor: 'pointer'
+            cursor: 'pointer',
           }}
         >
           ← Back
         </button>
-        <h1>Chat {chatid}</h1>
+        <h1 style={{ margin: 0 }}>Chat {chatid}</h1>
       </div>
 
-      <div>
-        <h2>Messages</h2>
+      {/* Nachrichtenliste (scrollt) */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
+        <h2 style={{ marginTop: 0 }}>Messages</h2>
         {loading && <p>Loading messages...</p>}
         {error && <p style={{ color: 'red' }}>Error: {error}</p>}
-        {/* Nachrichtenliste */}
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-          {/* Zeige jede Nachricht an */}
           {Array.isArray(messages) && messages.map((message) => (
             <div
               key={message.id || message.messageid || `${message.userid}-${message.time}`}
@@ -166,7 +185,7 @@ export default function ChatPage() {
                 padding: 12,
                 backgroundColor: '#f8f9fa',
                 border: '1px solid #dee2e6',
-                borderRadius: 4
+                borderRadius: 8,
               }}
             >
               <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
@@ -180,15 +199,14 @@ export default function ChatPage() {
               )}
             </div>
           ))}
-          
           {!loading && (!Array.isArray(messages) || messages.length === 0) && (
             <p>No messages in this chat yet.</p>
           )}
         </div>
       </div>
 
-      {/* Nachrichten-Eingabeformular */}
-      <form onSubmit={handleSendMessage} style={{ marginTop: 16 }}>
+      {/* Composer (unten fix) */}
+      <form onSubmit={handleSendMessage} style={{ borderTop: '1px solid #eee', padding: 12 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
             type="text"
@@ -201,7 +219,7 @@ export default function ChatPage() {
               padding: 12,
               border: '1px solid #ced4da',
               borderRadius: 4,
-              fontSize: '1em'
+              fontSize: '1em',
             }}
           />
           <button
@@ -214,13 +232,15 @@ export default function ChatPage() {
               border: 'none',
               borderRadius: 4,
               cursor: sending || !messageText.trim() ? 'not-allowed' : 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
           >
             {sending ? 'Sending...' : 'Send'}
           </button>
         </div>
       </form>
-    </main>
-  )
+    </div>
+  </main>
+)
+
 }

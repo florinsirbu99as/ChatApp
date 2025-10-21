@@ -19,6 +19,7 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
       console.log('Antwort vom Server:', data);
 
       if (res.ok) {
+        localStorage.setItem('userid', username);
         // Redirect to the simple home page
         window.location.href = '/home'
       } else {
