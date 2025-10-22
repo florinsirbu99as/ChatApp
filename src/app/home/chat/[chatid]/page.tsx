@@ -178,27 +178,50 @@ export default function ChatPage() {
         {error && <p style={{ color: 'red' }}>Error: {error}</p>}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-          {Array.isArray(messages) && messages.map((message) => (
-            <div
-              key={message.id || message.messageid || `${message.userid}-${message.time}`}
-              style={{
-                padding: 12,
-                backgroundColor: '#f8f9fa',
-                border: '1px solid #dee2e6',
-                borderRadius: 8,
-              }}
-            >
-              <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
-                {message.nickname || message.usernick || message.userid || 'Unknown user'}
-              </div>
-              {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
-              {(message.timestamp || message.time) && (
-                <div style={{ fontSize: '0.85em', color: '#6c757d', marginTop: 4 }}>
-                  {formatMessageDate(message.timestamp || message.time || '')}
+          {Array.isArray(messages) && messages.map((message) => {
+            const myId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
+            const isMine = myId && message.userid === myId
+
+            return (
+              <div
+                key={message.id || message.messageid || `${message.userid}-${message.time}`}
+                style={{
+                  display: 'flex',
+                  justifyContent: isMine ? 'flex-end' : 'flex-start',
+                }}
+              >
+                <div
+                  style={{
+                    padding: 12,
+                    backgroundColor: isMine ? '#2563eb' : '#f8f9fa', // blau vs. grau
+                    color: isMine ? '#ffffff' : '#111111',
+                    border: '1px solid',
+                    borderColor: isMine ? '#2563eb' : '#dee2e6',
+                    borderRadius: 8,
+                    maxWidth: '70%',
+                  }}
+                >
+                  {!isMine && (
+                    <div style={{ fontWeight: 'bold', marginBottom: 4, color: '#1f2937' }}>
+                      {message.nickname || message.usernick || message.userid || 'Unknown user'}
+                    </div>
+                  )}
+                  {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
+                  {(message.timestamp || message.time) && (
+                    <div
+                      style={{
+                        fontSize: '0.85em',
+                        marginTop: 4,
+                        color: isMine ? 'rgba(255,255,255,0.8)' : '#6c757d',
+                      }}
+                    >
+                      {formatMessageDate(message.timestamp || message.time || '')}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            )
+          })}
           {!loading && (!Array.isArray(messages) || messages.length === 0) && (
             <p>No messages in this chat yet.</p>
           )}
