@@ -113,7 +113,7 @@ export default function ChatPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
+          body: JSON.stringify({
           text: messageText,
           chatid: chatid,
         }),
@@ -171,7 +171,7 @@ export default function ChatPage() {
         <h1 style={{ margin: 0 }}>Chat {chatid}</h1>
       </div>
 
-      {/* Nachrichtenliste (scrollt) */}
+      {/* Nachrichtenliste scrollbar */}
       <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
         <h2 style={{ marginTop: 0 }}>Messages</h2>
         {loading && <p>Loading messages...</p>}
@@ -205,7 +205,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Composer (unten fix) */}
+      {/* Composer ist unten fix */}
       <form onSubmit={handleSendMessage} style={{ borderTop: '1px solid #eee', padding: 12 }}>
         <div style={{ display: 'flex', gap: 8 }}>
           <input
