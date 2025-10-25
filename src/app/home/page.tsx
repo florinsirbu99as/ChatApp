@@ -50,12 +50,52 @@ export default function HomePage() {
     router.push(`/home/chat/${chatid}`)
   }
 
+  //Neuen Chat erstellen
+  async function createChat(chatname: string) {
+    const response = await fetch('/api/chats/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatname }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Create failed')
+    return data
+  }
+
+
   return (
     // Inhalt der Home-Seite
     <main style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h1>Home</h1>
       <p>You are logged in.</p>
+      
 
+      {/*Neuer Chat Button*/}
+      <button
+        onClick={async () => {
+          const name = prompt('Enter chat name:')
+          if (!name) return
+          try {
+            await createChat(name)
+            // Liste neu laden – ohne Reload
+            await fetchChats()
+          } catch (e: any) {
+            alert(e.message)
+          }
+        }}
+        style={{
+          padding: 10,
+          backgroundColor: '#28a745',
+          color: '#fff',
+          borderRadius: 4,
+          marginBottom: 12,
+        }}
+      >
+        New Chat
+      </button>
+      
+
+      {/*Chats Ausgabe*/}
       <div>
         <h2>Your Chats</h2>
         {loading && <p>Loading chats...</p>}
@@ -72,8 +112,6 @@ export default function HomePage() {
                 color: 'white',
                 border: 'none',
                 borderRadius: 4,
-                cursor: 'pointer',
-                textAlign: 'left'
               }}
             >
               {chat.chatname || `Chat ${chat.chatid}`}
@@ -85,6 +123,8 @@ export default function HomePage() {
           )}
         </div>
       </div>
+      
+
 
       <AccountActions />
     </main>

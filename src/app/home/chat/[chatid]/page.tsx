@@ -62,42 +62,25 @@ export default function ChatPage() {
     router.push('/home')
   }
   // Datum formatieren
-  const formatMessageDate = (dateValue: string | number | undefined) => {
-    if (!dateValue) return ''
-    
-    try {
-      let date: Date
-      // Verschiedene mögliche Formate behandeln
-      if (typeof dateValue === 'number') {
-        const timestamp = dateValue
-        // Falls es wie Sekunden aussieht (vernünftiger Unix-Timestamp), in Millisekunden umwandeln
-        date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
-      } else if (typeof dateValue === 'string') {
-        // Versuche, als String zu parsen
-        date = new Date(dateValue)
-        // Falls ungültig, andere Formate versuchen
-        if (isNaN(date.getTime())) {
-          // Versuche Unix-Timestamp als String
-          const timestamp = parseInt(dateValue, 10)
-          if (!isNaN(timestamp)) {
-        date = new Date(timestamp > 10000000000 ? timestamp : timestamp * 1000)
-          }
-        }
-      } else {
-        return ''
-      }
-      
-      // Prüfe ob Datum gültig ist
-      if (isNaN(date.getTime())) {
-        return `${dateValue} (Invalid date format)`
-      }
-      // Gibt das formatierte Datum zurück
-      return date.toLocaleString()
-    } catch (err) {
-      console.error('Error formatting date:', dateValue, err)
-      return `${dateValue} (Error parsing)`
-    }
-  }
+  const formatMessageDate = (value?: string | number) => {
+  if (value == null) return ''
+
+  const m = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})$/.exec(String(value).trim())
+  if (!m) return `${value} (Invalid date format)`
+
+  const [, Y, M, D, h, mi, s] = m.map(Number)
+  const date = new Date(Y, M - 1, D, h, mi, s) // als lokale Zeit interpretiert
+
+  if (isNaN(date.getTime())) return `${value} (Invalid date)`
+
+  return new Intl.DateTimeFormat('de-DE', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+    timeZone: 'Europe/Berlin',
+  }).format(date)
+}
+
+
   // Nachricht senden
   const handleSendMessage = async (e: React.FormEvent) => {
     // Verhindert das Standardformularverhalten, also Seite nicht neuladen
