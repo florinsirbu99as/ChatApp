@@ -13,13 +13,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Username and password required' }, { status: 400 })
     }
 
-      const data = await callApi<{ token: string }>(
-        'login',
-        { userid, password }      
-        // 'GET' ist der Default in serverApi.ts
-      )
-
+    const data = await callApi<{ token: string, hash?: string }>(
+      'login',
+      { userid, password }      
+      // 'GET' ist der Default in serverApi.ts
+    )
     console.log('[Login] Success, token received')
+    console.log('[Login] token:', data.token)
+    console.log('[Login] hash:', (data as any).hash)
+
 
     const res = NextResponse.json({ ok: true })
     res.cookies.set('token', data.token, {
@@ -29,6 +31,14 @@ export async function POST(req: Request) {
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 Tage
     })
+    if (data.hash) {
+      //die hashs für die invites in die Chats. Nur zum Anzeigen im Frontend 
+      res.cookies.set('userhash', data.hash, {
+        httpOnly: false, 
+        sameSite: 'lax', path: '/', maxAge: 60 * 60 * 24 * 7,
+      })
+    }
+        
     return res
   } catch (err) {
     console.error('[Login] Error:', err)

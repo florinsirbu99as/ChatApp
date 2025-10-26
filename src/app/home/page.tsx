@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AccountActions from '@/components/AccountActions'
 import type { Chat } from '@/types/api'
+import MyInviteCode from '@/components/MyInviteCode'
 
 export default function HomePage() {
   const [chats, setChats] = useState<Chat[]>([])
@@ -68,6 +69,10 @@ export default function HomePage() {
     <main style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h1>Home</h1>
       <p>You are logged in.</p>
+
+    
+        <MyInviteCode />
+      
       
 
       {/*Neuer Chat Button*/}
@@ -77,7 +82,7 @@ export default function HomePage() {
           if (!name) return
           try {
             await createChat(name)
-            // Liste neu laden – ohne Reload
+            // Liste neu laden 
             await fetchChats()
           } catch (e: any) {
             alert(e.message)

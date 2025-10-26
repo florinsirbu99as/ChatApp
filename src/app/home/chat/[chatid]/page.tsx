@@ -13,13 +13,7 @@ export default function ChatPage() {
   const router = useRouter()
   const params = useParams()
   const chatid = params.chatid as string
-
-  // eigene UserId speichern
-  const [myUserId, setMyUserId] = useState<string | null>(null)
-  useEffect(() => {
-    const id = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
-    setMyUserId(id)
-  }, [])
+  
 
   useEffect(() => {
     // Laden, falls chatid existiert
@@ -27,6 +21,30 @@ export default function ChatPage() {
       fetchMessages()
     }
   }, [chatid])
+
+  //andere Nutzer zu Chat einladen
+  async function inviteToChat(chatid: string | number, invitedhash:string) {
+    const response = await fetch('/api/chats/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatid, invitedhash }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Invite failed')
+    return data
+  }
+
+  //Chat verlassen
+  async function leaveChat(chatid: string | number) {
+    const response = await fetch('/api/chats/leave', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatid }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Leaving failed')
+    return data
+  }
 
   const fetchMessages = async () => {
     try {
@@ -138,6 +156,7 @@ export default function ChatPage() {
     >
       {/* Kopfzeile */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderBottom: '1px solid #eee' }}>
+        {/*Zurück Button*/}
         <button
           onClick={handleBack}
           style={{
@@ -152,6 +171,51 @@ export default function ChatPage() {
           ← Back
         </button>
         <h1 style={{ margin: 0 }}>Chat {chatid}</h1>
+
+        {/*Neue Einladung*/}
+        <button
+          onClick={async () => {
+            const name = prompt('Enter userhash:')
+            if (!name) return
+            try {
+              await inviteToChat(chatid, name);
+              alert('Einladung gesendet.');
+              
+            } catch (e: any) {
+              alert(e.message)
+            }
+          }}
+          style={{
+            padding: 8,
+            backgroundColor: '#28a745',
+            color: '#fff',
+            borderRadius: 4,
+          }}
+        >
+          Invite user
+        </button>
+
+        {/*Chat verlassen*/}
+        <button
+          onClick={async () => {
+            if (!confirm('Do you really want to leave this chat?')) return
+            try {
+              await leaveChat(chatid);
+              router.push('/home');
+              
+            } catch (e: any) {
+              alert(e.message)
+            }
+          }}
+          style={{
+            padding: 8,
+            backgroundColor: '#d53131ff',
+            color: '#fff',
+            borderRadius: 4,
+          }}
+        >
+          Leave chat
+        </button>
       </div>
 
       {/* Nachrichtenliste scrollbar */}
