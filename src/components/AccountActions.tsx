@@ -8,6 +8,7 @@ export default function AccountActions() {
       console.log('[Logout] Antwort:', res.status);
       if (res.ok) {
         localStorage.removeItem('userid');
+        document.cookie = 'userhash=; Max-Age=0; path=/;'
         // Go back to the login page
         window.location.href = '/'
       } else {
@@ -31,6 +32,7 @@ export default function AccountActions() {
       const res = await fetch('/api/deregister', { method: 'POST' })
       if (res.ok) {
         localStorage.removeItem('userid');
+        document.cookie = 'userhash=; Max-Age=0; path=/;'
         alert('Account deleted.')
         // After account deletion, go to login
         window.location.href = '/'

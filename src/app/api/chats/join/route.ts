@@ -5,8 +5,8 @@ import { callApi } from '@/lib/serverApi'
 export async function POST(req: Request) {
   try {
     const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value     
-    
+    const token = cookieStore.get('token')?.value
+
     if (!token) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
     const { chatid } = await req.json();
