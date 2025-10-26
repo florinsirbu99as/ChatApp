@@ -173,6 +173,7 @@ export default function ChatPage() {
         <h1 style={{ margin: 0 }}>Chat {chatid}</h1>
 
         {/*Neue Einladung*/}
+        {chatid !== '0' && (
         <button
           onClick={async () => {
             const name = prompt('Enter userhash:')
@@ -192,10 +193,12 @@ export default function ChatPage() {
             borderRadius: 4,
           }}
         >
-          Invite user
+          Invite userrr
         </button>
+        )}
 
         {/*Chat verlassen*/}
+        {chatid !== '0' && (
         <button
           onClick={async () => {
             if (!confirm('Do you really want to leave this chat?')) return
@@ -216,6 +219,7 @@ export default function ChatPage() {
         >
           Leave chat
         </button>
+        )}
       </div>
 
       {/* Nachrichtenliste scrollbar */}
