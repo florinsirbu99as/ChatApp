@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import type { Message } from '@/types/api'
+import type { Message, Chat } from '@/types/api'
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -13,14 +13,39 @@ export default function ChatPage() {
   const router = useRouter()
   const params = useParams()
   const chatid = params.chatid as string
+  const [chatname, setChatname] = useState<string>('')
+
   
 
   useEffect(() => {
     // Laden, falls chatid existiert
-    if (chatid) {
-      fetchMessages()
+  if (chatid) {
+    fetchMessages()
+    fetchChatName()
+  }
+}, [chatid])
+
+//Chatnamen um ihn anzeigen zu lassen
+async function fetchChatName() {
+  try {
+    const res = await fetch('/api/chats')
+    if (!res.ok) throw new Error('Failed to load chats')
+    const data = await res.json()
+    const allChats = data.chats as Chat[]
+
+    const current = allChats.find((chat: Chat) => chat.chatid.toString() === chatid)
+
+    if (current) {
+      setChatname(current.chatname);
+    } else {
+      setChatname(`Chat ${chatid}`);
     }
-  }, [chatid])
+  } catch (err) {
+    console.error('Error loading chat name:', err)
+    setChatname(`Chat ${chatid}`)
+  }
+}
+
 
   //andere Nutzer zu Chat einladen
   async function inviteToChat(chatid: string | number, invitedhash:string) {
@@ -170,7 +195,7 @@ export default function ChatPage() {
         >
           ← Back
         </button>
-        <h1 style={{ margin: 0 }}>Chat {chatid}</h1>
+        <h1 style={{ margin: 0 }}>{chatname}</h1>
 
         {/*Neue Einladung*/}
         {chatid !== '0' && (
