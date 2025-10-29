@@ -5,11 +5,15 @@ import { useRouter } from 'next/navigation'
 import AccountActions from '@/components/AccountActions'
 import type { Chat } from '@/types/api'
 import MyInviteCode from '@/components/MyInviteCode'
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'  // Importiere Button von ShadCN
 
 export default function HomePage() {
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDialogOpen, setDialogOpen] = useState(false) 
+  const [chatName, setChatName] = useState('') 
   const router = useRouter()
 
   useEffect(() => {
@@ -25,16 +29,16 @@ export default function HomePage() {
       if (!response.ok) {
         throw new Error('Failed to fetch chats')
       }
-      //speicher die Daten
+       //speicher die Daten
       const data = await response.json()
       console.log('Fetched chats data:', data)
       //Prüfe das Format der Daten
       //ist data Array?
       if (Array.isArray(data)) {
         setChats(data)
-      //ist data Objekt?
+         //ist data Objekt?
       } else if (data && typeof data === 'object') {
-        setChats(data.chats || data.data || [])
+         setChats(data.chats || data.data || [])
       //sonst leere Liste setzen
       } else {
         setChats([])
@@ -46,13 +50,13 @@ export default function HomePage() {
       setLoading(false)
     }
   }
-  //Beim clicken gehe zur chat-Seite mit der jeweiligen chatid
+   //Beim clicken gehe zur chat-Seite mit der jeweiligen chatid
   const handleChatClick = (chatid: string) => {
     router.push(`/home/chat/${chatid}`)
   }
 
   //Neuen Chat erstellen
-  async function createChat(chatname: string) {
+  const createChat = async (chatname: string) => {
     const response = await fetch('/api/chats/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,42 +67,36 @@ export default function HomePage() {
     return data
   }
 
+  const handleCreateChat = async () => {
+    if (!chatName.trim()) return
+    try {
+      await createChat(chatName)
+      await fetchChats()
+      setDialogOpen(false)  // Schließt das Dialog-Fenster nach erfolgreicher Erstellung
+      setChatName('')  // Setzt den Chatnamen zurück
+    } catch (e: any) {
+      alert(e.message)
+    }
+  }
 
   return (
-    // Inhalt der Home-Seite
+     // Inhalt der Home-Seite
     <main style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <h1>Home</h1>
       <p>You are logged in.</p>
 
-    
-        <MyInviteCode />
-      
-      
+
+      <MyInviteCode />
+
+
 
       {/*Neuer Chat Button*/}
-      <button
-        onClick={async () => {
-          const name = prompt('Enter chat name:')
-          if (!name) return
-          try {
-            await createChat(name)
-            // Liste neu laden 
-            await fetchChats()
-          } catch (e: any) {
-            alert(e.message)
-          }
-        }}
-        style={{
-          padding: 10,
-          backgroundColor: '#28a745',
-          color: '#fff',
-          borderRadius: 4,
-          marginBottom: 12,
-        }}
+      <Button
+        onClick={() => setDialogOpen(true)}  // Öffnet das Dialog für den neuen Chat
+        style={{ padding: 10, backgroundColor: '#28a745', color: '#fff', borderRadius: 4, marginBottom: 12 }}
       >
         New Chat
-      </button>
-      
+      </Button>
 
       {/*Chats Ausgabe*/}
       <div>
@@ -108,7 +106,7 @@ export default function HomePage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
           {Array.isArray(chats) && chats.map((chat) => (
-            <button
+            <Button
               key={chat.chatid}
               onClick={() => handleChatClick(chat.chatid)}
               style={{
@@ -120,7 +118,7 @@ export default function HomePage() {
               }}
             >
               {chat.chatname || `Chat ${chat.chatid}`}
-            </button>
+            </Button>
           ))}
 
           {!loading && (!Array.isArray(chats) || chats.length === 0) && (
@@ -128,10 +126,34 @@ export default function HomePage() {
           )}
         </div>
       </div>
+
       
 
-
       <AccountActions />
+
+      {/* Dialog für Chat erstellen */}
+      <Dialog open={isDialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create a new chat</DialogTitle>
+          </DialogHeader>
+          <input
+            type="text"
+            value={chatName}
+            onChange={(e) => setChatName(e.target.value)}
+            placeholder="Enter chat name"
+            style={{ padding: 8, width: '100%' }}
+          />
+          <DialogFooter>
+            <Button onClick={handleCreateChat} style={{ backgroundColor: '#28a745', color: 'white' }}>
+              Create Chat
+            </Button>
+            <Button onClick={() => setDialogOpen(false)} style={{ backgroundColor: '#6c757d', color: 'white' }}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   )
 }

@@ -1,5 +1,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -35,9 +36,11 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className={`${inter.className} h-full overflow-hidden`}>
+        <ToastProvider>
         <div id="__next" className="h-full">
           {children}
         </div>
+        </ToastProvider>
       </body>
     </html>
   )
