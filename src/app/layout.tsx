@@ -1,6 +1,7 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
 import { ToastProvider } from '@/contexts/ToastContext'
+import SWRegistrar from './SWRegistrar'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className={`${inter.className} h-full overflow-hidden`}>
         <ToastProvider>
         <div id="__next" className="h-full">
+          <SWRegistrar />
           {children}
         </div>
         </ToastProvider>
