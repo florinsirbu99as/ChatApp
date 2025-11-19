@@ -11,6 +11,7 @@ export interface Message {
   messageid?: string
   text?: string
   photo?: string
+  photoid?: string
   position?: string
   chatid?: number
   time?: string

@@ -1,14 +1,71 @@
 // src/components/MessageList.tsx
 
 import { Message } from '@/types/api'
+import { useState, useEffect } from 'react'
 
 type MessageListProps = {
   messages: Message[]
   loading: boolean
   error: string | null
+  photoCache?: Record<string, string>
 }
 
-const MessageList: React.FC<MessageListProps> = ({ messages, loading, error }) => {
+const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, photoCache = {} }) => {
+  // Debug: log messages to see structure
+  console.log('Messages in MessageList:', messages)
+  console.log('Photo Cache:', photoCache)
+  
+  // Speichert vom Backend geholte Fotos, um sie anzuzeigen
+  const [fetchedPhotos, setFetchedPhotos] = useState<Record<string, string>>({})
+
+  // Hole Fotos vom Backend für Nachrichten die eine photoid haben
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      // Filtere Nachrichten die Fotos haben und nicht im Cache sind
+      const photoIds = messages
+        .filter(msg => msg.photoid && !photoCache[msg.photoid] && !fetchedPhotos[msg.photoid])
+        .map(msg => msg.photoid)
+        .filter((id): id is string => id !== undefined)
+
+      if (photoIds.length === 0) return
+
+      console.log(`[MessageList] Hole ${photoIds.length} Fotos vom Backend`)
+
+      // Hole jedes Foto einzeln vom Backend via /api/photo
+      for (const photoid of photoIds) {
+        try {
+          console.log(`[MessageList] Hole Foto: ${photoid}`)
+          const response = await fetch(`/api/photo?photoid=${photoid}`)
+          if (response.ok) {
+            const data = await response.json()
+            console.log(`[MessageList] Foto erfolgreich geholt ${photoid}`)
+            // Speichere das geholte Foto im State
+            setFetchedPhotos(prev => ({
+              ...prev,
+              [photoid]: data.photo,
+            }))
+          } else {
+            console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}: ${response.status}`)
+            // Markiere als fehlgeschlagen, um nicht wieder zu versuchen
+            setFetchedPhotos(prev => ({
+              ...prev,
+              [photoid]: 'error',
+            }))
+          }
+        } catch (err) {
+          console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}:`, err)
+          // Markiere als fehlgeschlagen
+          setFetchedPhotos(prev => ({
+            ...prev,
+            [photoid]: 'error',
+          }))
+        }
+      }
+    }
+
+    fetchPhotos()
+  }, [messages, photoCache, fetchedPhotos])
+  
   const formatMessageDate = (value?: string | number) => {
     if (value == null) return ''
 
@@ -58,6 +115,57 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error }) =
                 {!isMine && (
                   <div style={{ fontWeight: 'bold', marginBottom: 4, color: '#1f2937' }}>
                     {message.nickname || message.usernick || message.userid || 'Unknown user'}
+                  </div>
+                )}
+                {message.photo && (
+                  <div style={{ marginBottom: message.text ? 8 : 0 }}>
+                    {/* Zeige Foto direkt wenn es im message.photo Field gespeichert ist */}
+                    <img 
+                      src={message.photo} 
+                      alt="Nachrichtenanhang" 
+                      style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
+                    />
+                  </div>
+                )}
+                {message.photoid && (
+                  <div style={{ marginBottom: message.text ? 8 : 0 }}>
+                    {/* Versuche zuerst gecachtes Foto (vom aktuellen Benutzer gesendet) */}
+                    {photoCache[message.photoid] ? (
+                      <img 
+                        src={photoCache[message.photoid]} 
+                        alt="Nachrichtenanhang" 
+                        style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
+                      />
+                    ) : fetchedPhotos[message.photoid] && fetchedPhotos[message.photoid] !== 'error' ? (
+                      /* Dann versuche vom Backend geholtes Foto */
+                      <img 
+                        src={fetchedPhotos[message.photoid]} 
+                        alt="Nachrichtenanhang" 
+                        style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
+                      />
+                    ) : fetchedPhotos[message.photoid] === 'error' ? (
+                      /* Zeige Fehler wenn Abrufen fehlgeschlagen ist */
+                      <div style={{
+                        padding: 12,
+                        backgroundColor: '#fee',
+                        borderRadius: 6,
+                        color: '#c33',
+                        fontSize: '0.9em',
+                      }}>
+                        ⚠️ Foto nicht verfügbar
+                      </div>
+                    ) : (
+                      /* Zeige Ladesymbol wenn Abrufen lädt */
+                      <div style={{
+                        padding: 12,
+                        backgroundColor: '#eee',
+                        borderRadius: 6,
+                        color: '#666',
+                        fontSize: '0.9em',
+                      }}>
+                        ⏳ Lade Foto...
+                      </div>
+                    )}
                   </div>
                 )}
                 {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
