@@ -84,6 +84,24 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
     }).format(date)
   }
 
+  // Wandelt Positions-Zeichenkette ("lat,lng") in Zahlen um
+const parsePosition = (position?: string): { lat: number; lng: number } | null => {
+  if (!position) return null
+  const trimmed = position.trim()
+  if (!trimmed) return null
+
+  const parts = trimmed.split(',')
+  if (parts.length !== 2) return null
+
+  const lat = Number(parts[0])
+  const lng = Number(parts[1])
+
+  if (Number.isNaN(lat) || Number.isNaN(lng)) return null
+
+  return { lat, lng }
+}
+
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
       {loading && <p>Loading messages...</p>}
@@ -92,6 +110,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
         messages.map((message) => {
           const myId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
           const isMine = myId && message.userid === myId
+          const coords = parsePosition(message.position)
+          const hasLocation = !!coords
+
 
           return (
             <div
@@ -168,7 +189,38 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
                     )}
                   </div>
                 )}
-                {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
+                {/* Standortnachricht anzeigen */}
+{hasLocation && coords && (
+  <div style={{ marginBottom: message.text ? 8 : 0 }}>
+    {/* Titel der Standortnachricht */}
+    <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+      📍 Shared location
+    </div>
+
+    {/* Koordinaten */}
+    <div style={{ fontSize: '0.9em', marginBottom: 4 }}>
+      {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+    </div>
+
+    {/* Link zu Google Maps */}
+    <a
+      href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        fontSize: '0.9em',
+        textDecoration: 'underline',
+        color: isMine ? '#bfdbfe' : '#2563eb',
+      }}
+    >
+      Open in Maps
+    </a>
+  </div>
+)}
+
+{/* Normaler Text */}
+{message.text && <p style={{ margin: 0 }}>{message.text}</p>}
+
                 {(message.timestamp || message.time) && (
                   <div
                     style={{

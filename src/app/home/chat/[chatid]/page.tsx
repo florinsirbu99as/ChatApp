@@ -172,6 +172,8 @@ export default function ChatPage() {
     }
   }
 
+
+
   const handleCapturePhoto = (imageData: string) => {
     // Komprimiere das Foto um Speichergröße zu reduzieren
     const img = new Image()
@@ -208,6 +210,97 @@ export default function ChatPage() {
     }
     img.src = imageData
   }
+
+  //Standort teilen Funktion
+const handleShareLocation = () => {
+  //Prüfen ob der Browser Geolocation unterstützt
+  if (!navigator.geolocation) {
+    addToast('Geolocation wird von diesem Browser nicht unterstützt.')
+    return
+  }
+
+  //Standort abrufen
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+
+      console.log("Geolocation details:", {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy_in_meters: pos.coords.accuracy,
+        altitudeAccuracy: pos.coords.altitudeAccuracy,
+        timestamp: new Date(pos.timestamp).toISOString()
+      });
+
+      
+
+      const accuracy = pos.coords.accuracy;
+      const lat = pos.coords.latitude
+      const lng = pos.coords.longitude
+
+      //Genauigkeit prüfen
+      if (accuracy !== null && accuracy > 200) { 
+        const accuracyKm = (accuracy / 1000).toFixed(1);
+        addToast(
+          `Location accuracy is about ${accuracyKm} km (${Math.round(accuracy)}m).`
+        );
+      }
+
+      try {
+        setSending(true)
+
+        //Standortnachricht an die API senden
+        const response = await fetch('/api/messages/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text: '',                 
+            chatid: chatid,
+            position: `${lat},${lng}` //Koordinaten als Zeichenkette
+          }),
+        })
+
+        const responseData = await response.json()
+        console.log('Send location response:', responseData)
+
+        if (!response.ok) {
+          throw new Error(responseData.error || 'Failed to send location')
+        }
+
+        await fetchMessages()
+        
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to send location'
+        addToast('Error: ' + errorMessage)
+      } finally {
+        setSending(false)
+      }
+    },
+    (error) => {
+      // Fehlerbehandlung für Standortzugriff
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          addToast('Location permission denied.')
+          break
+        case error.POSITION_UNAVAILABLE:
+          addToast('Location unavailable.')
+          break
+        case error.TIMEOUT:
+          addToast('Location request timed out.')
+          break
+        default:
+          addToast('Unknown location error.')
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+  )
+}
+
 
   const inviteToChat = async (chatid: string | number, invitedhash: string) => {
     const response = await fetch('/api/chats/invite', {
@@ -274,64 +367,86 @@ export default function ChatPage() {
             <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, padding: 8, backgroundColor: '#e7f3ff', borderRadius: 4 }}>
               <img src={capturedPhoto} alt="Angehängtes Foto" style={{ width: 50, height: 50, borderRadius: 4, objectFit: 'cover' }} />
               <span style={{ flex: 1, fontSize: '0.9em', color: '#555' }}>Foto hinzugefügt</span>
-              <button
-                type="button"
-                onClick={() => setCapturedPhoto(null)}
-                style={{ padding: '4px 8px', backgroundColor: '#ff6b6b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.8em' }}
-              >
-                Entfernen
-              </button>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 8 }}>
-            <input
-              type="text"
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              placeholder="Gib deine Nachricht ein..."
-              disabled={sending}
-              style={{
-                flex: 1,
-                padding: 12,
-                border: '1px solid #ced4da',
-                borderRadius: 4,
-                fontSize: '1em',
-              }}
-            />
-            {/* Kamera-Button - Öffnet Modal zum Fotos aufnehmen */}
-            <button
-              type="button"
-              onClick={() => setIsCameraModalOpen(true)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-              title="Foto aufnehmen"
-            >
-              📷
-            </button>
-            <button
-              type="submit"
-              disabled={sending || (!messageText.trim() && !capturedPhoto)}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: sending || (!messageText.trim() && !capturedPhoto) ? '#6c757d' : '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: 4,
-                cursor: sending || (!messageText.trim() && !capturedPhoto) ? 'not-allowed' : 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              {sending ? 'Sending...' : 'Send'}
-            </button>
-          </div>
-        </form>
+             <button
+        type="button"
+        onClick={() => setCapturedPhoto(null)}
+        style={{ padding: '4px 8px', backgroundColor: '#ff6b6b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.8em' }}
+      >
+        Remove
+      </button>
+    </div>
+  )}
+  <div style={{ display: 'flex', gap: 8 }}>
+    <input
+      type="text"
+      value={messageText}
+      onChange={(e) => setMessageText(e.target.value)}
+      placeholder="Type your message..."
+      disabled={sending}
+      style={{
+        flex: 1,
+        padding: 12,
+        border: '1px solid #ced4da',
+        borderRadius: 4,
+        fontSize: '1em',
+      }}
+    />
+    {/* Kamera-Button - Öffnet Modal zum Fotos aufnehmen */}
+    <button
+      type="button"
+      onClick={() => setIsCameraModalOpen(true)}
+      style={{
+        padding: '12px 24px',
+        backgroundColor: '#007bff',
+        color: 'white',
+        border: 'none',
+        borderRadius: 4,
+        cursor: 'pointer',
+        fontWeight: 'bold',
+      }}
+      title="Take photo"
+    >
+      📷
+    </button>
+
+    {/* Button zum Standortteilen */}
+    <button
+      type="button"
+      onClick={handleShareLocation}
+      disabled={sending}
+      style={{
+        padding: '12px 16px',
+        backgroundColor: '#0d6efd',
+        color: 'white',
+        border: 'none',
+        borderRadius: 4,
+        cursor: sending ? 'not-allowed' : 'pointer',
+        fontWeight: 'bold',
+        whiteSpace: 'nowrap',
+      }}
+      title="Share location"
+    >
+      📍
+    </button>
+
+    {/* Button zum Senden der Nachricht */}
+    <button
+      type="submit"
+      disabled={sending || (!messageText.trim() && !capturedPhoto)}
+      style={{
+        padding: '12px 24px',
+        backgroundColor: sending || (!messageText.trim() && !capturedPhoto) ? '#6c757d' : '#28a745',
+        color: 'white',
+        border: 'none',
+        borderRadius: 4,
+        cursor: sending || (!messageText.trim() && !capturedPhoto) ? 'not-allowed' : 'pointer',
+        fontWeight: 'bold',
+      }}
+    >
+      {sending ? 'Sending...' : 'Send'}
+    </button>
+  </div>
+</form>
       </div>
 
       <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
