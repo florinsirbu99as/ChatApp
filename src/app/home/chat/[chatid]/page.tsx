@@ -8,6 +8,12 @@ import { Button } from '@/components/ui/button'
 import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import { useToast } from '@/contexts/ToastContext'  
+import { FaCamera, FaMapMarkerAlt } from 'react-icons/fa'
+import { Camera, MapPin } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
+
+
+
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -325,22 +331,29 @@ const handleShareLocation = () => {
   }
 
   return (
-    <main style={{ padding: 16 }}>
-      <div style={{ display: 'flex', flexDirection: 'column', height: '80vh', border: '1px solid #eee', borderRadius: 12, overflow: 'hidden', background: '#fff' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderBottom: '1px solid #eee', justifyContent: 'space-between' }}>
+  <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700">
+    <main className="flex min-h-screen items-center justify-center p-4">
+      {/* Zentrale Chat-Card */}
+      <div className="flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
           <button
             onClick={handleBack}
-            style={{ padding: 8, backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer' }}
+            className="rounded-md bg-slate-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
           >
-            ← Back
+            <ArrowLeft className="h-5 w-5" />
           </button>
-          <h1 style={{ margin: 0 }}>{chatname}</h1>
 
-          <div>
+          <h1 className="truncate text-lg font-semibold text-slate-800">
+            {chatname}
+          </h1>
+
+          <div className="flex gap-2">
             {chatid !== '0' && (
               <button
+                type="button"
                 onClick={() => setInviteDialogOpen(true)}
-                style={{ padding: 8, backgroundColor: '#28a745', color: '#fff', borderRadius: 4 }}
+                className="rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-600"
               >
                 Invite user
               </button>
@@ -348,8 +361,9 @@ const handleShareLocation = () => {
 
             {chatid !== '0' && (
               <button
+                type="button"
                 onClick={() => setLeaveDialogOpen(true)}
-                style={{ padding: 8, backgroundColor: '#d53131ff', color: '#fff', borderRadius: 4 }}
+                className="rounded-md bg-rose-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-rose-600"
               >
                 Leave chat
               </button>
@@ -357,98 +371,94 @@ const handleShareLocation = () => {
           </div>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: 12 }}>
-          <MessageList messages={messages} loading={loading} error={error} photoCache={photoCache} />
+        {/* Nachrichtenliste eigener Scrollbereich */}
+        <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-5 sm:px-6 sm:py-6">
+          <MessageList
+            messages={messages}
+            loading={loading}
+            error={error}
+            photoCache={photoCache}
+          />
         </div>
 
-        <form onSubmit={handleSendMessage} style={{ borderTop: '1px solid #eee', padding: 12 }}>
-          {/* Zeige Foto-Vorschau wenn ein Foto ausgewählt wurde */}
-          {capturedPhoto && (
-            <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8, padding: 8, backgroundColor: '#e7f3ff', borderRadius: 4 }}>
-              <img src={capturedPhoto} alt="Angehängtes Foto" style={{ width: 50, height: 50, borderRadius: 4, objectFit: 'cover' }} />
-              <span style={{ flex: 1, fontSize: '0.9em', color: '#555' }}>Foto hinzugefügt</span>
-             <button
+
+       <form
+  onSubmit={handleSendMessage}
+  className="border-t border-slate-200 bg-white"
+>
+  {/* Foto-Vorschau (unverändert, falls du sie schon hast) */}
+  {capturedPhoto && (
+    <div className="mx-4 mt-3 mb-1 flex items-center gap-3 rounded-lg bg-blue-50 p-2 text-sm text-slate-700">
+      <img
+        src={capturedPhoto}
+        alt="Angehängtes Foto"
+        className="h-12 w-12 rounded object-cover"
+      />
+      <span className="flex-1 text-xs sm:text-sm">Foto hinzugefügt</span>
+      <button
         type="button"
         onClick={() => setCapturedPhoto(null)}
-        style={{ padding: '4px 8px', backgroundColor: '#ff6b6b', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: '0.8em' }}
+        className="rounded-md bg-rose-500 px-2 py-1 text-xs font-medium text-white hover:bg-rose-600"
       >
         Remove
       </button>
     </div>
   )}
-  <div style={{ display: 'flex', gap: 8 }}>
-    <input
-      type="text"
-      value={messageText}
-      onChange={(e) => setMessageText(e.target.value)}
-      placeholder="Type your message..."
-      disabled={sending}
-      style={{
-        flex: 1,
-        padding: 12,
-        border: '1px solid #ced4da',
-        borderRadius: 4,
-        fontSize: '1em',
-      }}
-    />
-    {/* Kamera-Button - Öffnet Modal zum Fotos aufnehmen */}
-    <button
-      type="button"
-      onClick={() => setIsCameraModalOpen(true)}
-      style={{
-        padding: '12px 24px',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: 4,
-        cursor: 'pointer',
-        fontWeight: 'bold',
-      }}
-      title="Take photo"
-    >
-      📷
-    </button>
 
-    {/* Button zum Standortteilen */}
-    <button
-      type="button"
-      onClick={handleShareLocation}
-      disabled={sending}
-      style={{
-        padding: '12px 16px',
-        backgroundColor: '#0d6efd',
-        color: 'white',
-        border: 'none',
-        borderRadius: 4,
-        cursor: sending ? 'not-allowed' : 'pointer',
-        fontWeight: 'bold',
-        whiteSpace: 'nowrap',
-      }}
-      title="Share location"
-    >
-      📍
-    </button>
+  <div className="flex items-center gap-2 px-4 py-3">
+    {/* Message-Bar mit Icons innen rechts */}
+    <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm">
+      <input
+        type="text"
+        value={messageText}
+        onChange={e => setMessageText(e.target.value)}
+        placeholder="Type your message..."
+        disabled={sending}
+        className="flex-1 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+      />
 
-    {/* Button zum Senden der Nachricht */}
+      {/* Kamera-Icon in der Bar */}
+      <button
+        type="button"
+        onClick={() => setIsCameraModalOpen(true)}
+        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+        title="Take photo"
+      >
+        <Camera className="h-5 w-5" />
+      </button>
+
+      {/* Standort-Icon in der Bar */}
+      <button
+        type="button"
+        onClick={handleShareLocation}
+        disabled={sending}
+        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+        title="Share location"
+      >
+        <MapPin className="h-5 w-5" />
+      </button>
+    </div>
+
+    {/* Senden-Button rechts daneben */}
     <button
       type="submit"
       disabled={sending || (!messageText.trim() && !capturedPhoto)}
-      style={{
-        padding: '12px 24px',
-        backgroundColor: sending || (!messageText.trim() && !capturedPhoto) ? '#6c757d' : '#28a745',
-        color: 'white',
-        border: 'none',
-        borderRadius: 4,
-        cursor: sending || (!messageText.trim() && !capturedPhoto) ? 'not-allowed' : 'pointer',
-        fontWeight: 'bold',
-      }}
+      className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
+        sending || (!messageText.trim() && !capturedPhoto)
+          ? 'cursor-not-allowed bg-slate-400'
+          : 'bg-emerald-500 hover:bg-emerald-600'
+      }`}
     >
-      {sending ? 'Sending...' : 'Send'}
+      {sending ? 'Sending…' : 'Send'}
     </button>
   </div>
 </form>
+
+
+
       </div>
 
+      {/* Invite-Dialog */}
       <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -457,9 +467,9 @@ const handleShareLocation = () => {
           <input
             type="text"
             value={userHash}
-            onChange={(e) => setUserHash(e.target.value)}
+            onChange={e => setUserHash(e.target.value)}
             placeholder="Enter user hash"
-            style={{ padding: 8, width: '100%' }}
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-400/40"
           />
           <DialogFooter>
             <Button
@@ -467,9 +477,9 @@ const handleShareLocation = () => {
                 if (userHash) {
                   inviteToChat(chatid, userHash)
                     .then(() => {
-                      addToast('Einladung gesendet')  // Zeige Toast-Benachrichtigung
+                      addToast('Einladung gesendet')
                     })
-                    .catch((err) => addToast('Fehler: ' + err.message))
+                    .catch(err => addToast('Fehler: ' + err.message))
                     .finally(() => {
                       setInviteDialogOpen(false)
                       setUserHash('')
@@ -483,38 +493,46 @@ const handleShareLocation = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Leave-Dialog */}
       <Dialog open={isLeaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Leave Chat</DialogTitle>
           </DialogHeader>
-          <p>Are you sure you want to leave this chat?</p>
+          <p className="text-sm text-slate-700">
+            Are you sure you want to leave this chat?
+          </p>
           <DialogFooter>
             <Button
               onClick={() => {
                 leaveChat(chatid)
                   .then(() => {
-                    addToast('Chat verlassen')  
+                    addToast('Chat verlassen')
                     router.push('/home')
                   })
-                  .catch((err) => addToast('Fehler: ' + err.message))
+                  .catch(err => addToast('Fehler: ' + err.message))
                   .finally(() => {
                     setLeaveDialogOpen(false)
                   })
               }}
+              className="bg-rose-500 text-white hover:bg-rose-600"
             >
               Yes, leave chat
             </Button>
-            <Button onClick={() => setLeaveDialogOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setLeaveDialogOpen(false)}>
+              Cancel
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <CameraModal 
-        isOpen={isCameraModalOpen} 
-        onClose={() => setIsCameraModalOpen(false)} 
+      <CameraModal
+        isOpen={isCameraModalOpen}
+        onClose={() => setIsCameraModalOpen(false)}
         onCapture={handleCapturePhoto}
       />
     </main>
-  )
+  </div>
+)
+
 }
