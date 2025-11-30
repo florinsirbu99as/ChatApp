@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import type { Message, Chat } from '@/types/api'
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
@@ -9,8 +9,9 @@ import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import { useToast } from '@/contexts/ToastContext'  
 import { FaCamera, FaMapMarkerAlt } from 'react-icons/fa'
-import { Camera, MapPin } from "lucide-react"
-import { ArrowLeft } from "lucide-react"
+import { Camera, MapPin, ArrowLeft, MoreVertical } from "lucide-react"
+
+
 
 
 
@@ -31,8 +32,9 @@ export default function ChatPage() {
   const params = useParams()
   const chatid = params.chatid as string
   const [chatname, setChatname] = useState<string>('')
-
   const { addToast } = useToast() 
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
      // Laden, falls chatid existiert
@@ -42,6 +44,19 @@ export default function ChatPage() {
     }
   }, [chatid])
 
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      setMenuOpen(false)
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside)
+  return () => document.removeEventListener('mousedown', handleClickOutside)
+}, [])
+
+
+  
   //Chatnamen um ihn anzeigen zu lassen
   async function fetchChatName() {
     try {
@@ -336,40 +351,72 @@ const handleShareLocation = () => {
       {/* Zentrale Chat-Card */}
       <div className="flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+        <div className="flex items-center gap-2 border-b border-gray-200 p-4">
+          {/* Back-Button als Icon */}
           <button
             onClick={handleBack}
-            className="rounded-md bg-slate-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+            className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Back to chats"
           >
             <ArrowLeft className="h-5 w-5" />
           </button>
 
-          <h1 className="truncate text-lg font-semibold text-slate-800">
-            {chatname}
-          </h1>
-
-          <div className="flex gap-2">
-            {chatid !== '0' && (
-              <button
-                type="button"
-                onClick={() => setInviteDialogOpen(true)}
-                className="rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-600"
-              >
-                Invite user
-              </button>
-            )}
-
-            {chatid !== '0' && (
-              <button
-                type="button"
-                onClick={() => setLeaveDialogOpen(true)}
-                className="rounded-md bg-rose-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-rose-600"
-              >
-                Leave chat
-              </button>
-            )}
+          {/* Titel/Chatname */}
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-semibold text-gray-900">
+              {chatname}
+            </h1>
           </div>
+
+          {/* Overflow-Menü mit Invite und Leave */}
+          {chatid !== '0' && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(v => !v)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-haspopup="true"
+                aria-expanded={menuOpen ? 'true' : 'false'}
+                aria-label="More actions"
+              >
+                <MoreVertical className="h-5 w-5 text-gray-700" />
+              </button>
+
+              {menuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 z-10 mt-2 w-48 rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg"
+                >
+                  {/* Invite*/}
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setInviteDialogOpen(true)
+                    }}
+                    className="block w-full px-3 py-2 text-left hover:bg-gray-50"
+                    role="menuitem"
+                  >
+                    Invite user
+                  </button>
+
+                  <div className="my-1 border-t border-gray-100" />
+
+                  {/* Leave*/}
+                  <button
+                    onClick={() => {
+                      setMenuOpen(false)
+                      setLeaveDialogOpen(true)
+                    }}
+                    className="block w-full px-3 py-2 text-left text-red-600 hover:bg-red-50"
+                    role="menuitem"
+                  >
+                    Leave chat
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
 
         {/* Nachrichtenliste eigener Scrollbereich */}
         <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-5 sm:px-6 sm:py-6">
@@ -383,76 +430,75 @@ const handleShareLocation = () => {
 
 
        <form
-  onSubmit={handleSendMessage}
-  className="border-t border-slate-200 bg-white"
->
-  {/* Foto-Vorschau (unverändert, falls du sie schon hast) */}
-  {capturedPhoto && (
-    <div className="mx-4 mt-3 mb-1 flex items-center gap-3 rounded-lg bg-blue-50 p-2 text-sm text-slate-700">
-      <img
-        src={capturedPhoto}
-        alt="Angehängtes Foto"
-        className="h-12 w-12 rounded object-cover"
-      />
-      <span className="flex-1 text-xs sm:text-sm">Foto hinzugefügt</span>
-      <button
-        type="button"
-        onClick={() => setCapturedPhoto(null)}
-        className="rounded-md bg-rose-500 px-2 py-1 text-xs font-medium text-white hover:bg-rose-600"
+        onSubmit={handleSendMessage}
+        className="border-t border-slate-200 bg-white"
       >
-        Remove
-      </button>
-    </div>
-  )}
+        {capturedPhoto && (
+          <div className="mx-4 mt-3 mb-1 flex items-center gap-3 rounded-lg bg-blue-50 p-2 text-sm text-slate-700">
+            <img
+              src={capturedPhoto}
+              alt="Angehängtes Foto"
+              className="h-12 w-12 rounded object-cover"
+            />
+            <span className="flex-1 text-xs sm:text-sm">Foto hinzugefügt</span>
+            <button
+              type="button"
+              onClick={() => setCapturedPhoto(null)}
+              className="rounded-md bg-rose-500 px-2 py-1 text-xs font-medium text-white hover:bg-rose-600"
+            >
+              Remove
+            </button>
+          </div>
+        )}
 
-  <div className="flex items-center gap-2 px-4 py-3">
-    {/* Message-Bar mit Icons innen rechts */}
-    <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm">
-      <input
-        type="text"
-        value={messageText}
-        onChange={e => setMessageText(e.target.value)}
-        placeholder="Type your message..."
-        disabled={sending}
-        className="flex-1 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-      />
+        <div className="flex items-center gap-2 px-4 py-3">
+          {/* Message-Bar mit Icons innen rechts */}
+          <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm">
+            <input
+              type="text"
+              value={messageText}
+              onChange={e => setMessageText(e.target.value)}
+              placeholder="Type your message..."
+              disabled={sending}
+              className="flex-1 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
 
-      {/* Kamera-Icon in der Bar */}
-      <button
-        type="button"
-        onClick={() => setIsCameraModalOpen(true)}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-        title="Take photo"
-      >
-        <Camera className="h-5 w-5" />
-      </button>
+            {/* Kamera-Icon in der Bar */}
+            <button
+              type="button"
+              onClick={() => setIsCameraModalOpen(true)}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+              title="Take photo"
+            >
+              <Camera className="h-5 w-5" />
+            </button>
 
-      {/* Standort-Icon in der Bar */}
-      <button
-        type="button"
-        onClick={handleShareLocation}
-        disabled={sending}
-        className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
-        title="Share location"
-      >
-        <MapPin className="h-5 w-5" />
-      </button>
-    </div>
+            {/* Standort-Icon in der Bar */}
+            <button
+              type="button"
+              onClick={handleShareLocation}
+              disabled={sending}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
+              title="Share location"
+            >
+              <MapPin className="h-5 w-5" />
+            </button>
+          </div>
 
-    {/* Senden-Button rechts daneben */}
-    <button
-      type="submit"
-      disabled={sending || (!messageText.trim() && !capturedPhoto)}
-      className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
-        sending || (!messageText.trim() && !capturedPhoto)
-          ? 'cursor-not-allowed bg-slate-400'
-          : 'bg-emerald-500 hover:bg-emerald-600'
-      }`}
-    >
-      {sending ? 'Sending…' : 'Send'}
-    </button>
-  </div>
-</form>
+          {/* Senden-Button rechts daneben */}
+          <button
+            type="submit"
+            disabled={sending || (!messageText.trim() && !capturedPhoto)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
+              sending || (!messageText.trim() && !capturedPhoto)
+                ? 'cursor-not-allowed bg-slate-400'
+                : 'bg-emerald-500 hover:bg-emerald-600'
+            }`}
+          >
+            {sending ? 'Sending…' : 'Send'}
+          </button>
+        </div>
+      </form>
 
 
 
