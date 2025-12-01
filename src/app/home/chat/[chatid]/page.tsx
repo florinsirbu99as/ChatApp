@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import { useToast } from '@/contexts/ToastContext'  
-import { FaCamera, FaMapMarkerAlt } from 'react-icons/fa'
 import { Camera, MapPin, ArrowLeft, MoreVertical } from "lucide-react"
 
 

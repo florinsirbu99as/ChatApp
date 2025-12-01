@@ -87,7 +87,9 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
   // Wandelt Positions-Zeichenkette ("lat,lng") in Zahlen um
 const parsePosition = (position?: string): { lat: number; lng: number } | null => {
   if (!position) return null
-  const trimmed = position.trim()
+  // Ensure position is a string
+  const positionStr = typeof position === 'string' ? position : String(position)
+  const trimmed = positionStr.trim()
   if (!trimmed) return null
 
   const parts = trimmed.split(',')
