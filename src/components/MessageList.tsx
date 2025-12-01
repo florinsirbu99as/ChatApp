@@ -1,7 +1,7 @@
 // src/components/MessageList.tsx
 
 import { Message } from '@/types/api'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 type MessageListProps = {
   messages: Message[]
@@ -17,25 +17,40 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
   
   // Speichert vom Backend geholte Fotos, um sie anzuzeigen
   const [fetchedPhotos, setFetchedPhotos] = useState<Record<string, string>>({})
+  const fetchingRef = useRef<Set<string>>(new Set()) //Verhindert doppelte Requests
 
   // Hole Fotos vom Backend für Nachrichten die eine photoid haben
   useEffect(() => {
     const fetchPhotos = async () => {
       // Filtere Nachrichten die Fotos haben und nicht im Cache sind
       const photoIds = messages
-        .filter(msg => msg.photoid && !photoCache[msg.photoid] && !fetchedPhotos[msg.photoid])
+        .filter(msg => msg.photoid && !photoCache[msg.photoid] && !fetchedPhotos[msg.photoid] && !fetchingRef.current.has(msg.photoid))
         .map(msg => msg.photoid)
         .filter((id): id is string => id !== undefined)
+        .slice(0, 5) //nur 5 Fotos gleichzeitig laden
 
       if (photoIds.length === 0) return
 
-      console.log(`[MessageList] Hole ${photoIds.length} Fotos vom Backend`)
+      console.log(`[MessageList] Hole ${photoIds.length} Fotos vom Backend (max 5 gleichzeitig)`)
 
-      // Hole jedes Foto einzeln vom Backend via /api/photo
+      //markiere diese Fotos als "wird geladen"
+      photoIds.forEach(id => fetchingRef.current.add(id))
+
+     // Hole jedes Foto einzeln vom Backend via /api/photo
       for (const photoid of photoIds) {
         try {
           console.log(`[MessageList] Hole Foto: ${photoid}`)
-          const response = await fetch(`/api/photo?photoid=${photoid}`)
+          
+          //Timeout für Request (10 Sekunden)
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => controller.abort(), 10000)
+          
+          const response = await fetch(`/api/photo?photoid=${photoid}`, {
+            signal: controller.signal
+          })
+          
+          clearTimeout(timeoutId)
+          
           if (response.ok) {
             const data = await response.json()
             console.log(`[MessageList] Foto erfolgreich geholt ${photoid}`)
@@ -53,18 +68,28 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
             }))
           }
         } catch (err) {
-          console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}:`, err)
+          if (err instanceof Error && err.name === 'AbortError') {
+            console.error(`[MessageList] Timeout beim Abrufen des Fotos ${photoid}`)
+          } else {
+            console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}:`, err)
+          }
           // Markiere als fehlgeschlagen
           setFetchedPhotos(prev => ({
             ...prev,
             [photoid]: 'error',
           }))
+        } finally {
+          //Entferne aus "wird geladen" 
+          fetchingRef.current.delete(photoid)
         }
+        
+        //Kleine Pause zwischen Requests (200ms)
+        await new Promise(resolve => setTimeout(resolve, 200))
       }
     }
 
     fetchPhotos()
-  }, [messages, photoCache, fetchedPhotos])
+  }, [messages, photoCache]) //fetchedPhotos aus Dependencies entfernt
   
   const formatMessageDate = (value?: string | number) => {
     if (value == null) return ''
@@ -85,24 +110,23 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
   }
 
   // Wandelt Positions-Zeichenkette ("lat,lng") in Zahlen um
-const parsePosition = (position?: string): { lat: number; lng: number } | null => {
-  if (!position) return null
-  // Ensure position is a string
-  const positionStr = typeof position === 'string' ? position : String(position)
-  const trimmed = positionStr.trim()
-  if (!trimmed) return null
+  const parsePosition = (position?: string): { lat: number; lng: number } | null => {
+    if (!position) return null
+    // Ensure position is a string
+    const positionStr = typeof position === 'string' ? position : String(position)
+    const trimmed = positionStr.trim()
+    if (!trimmed) return null
 
-  const parts = trimmed.split(',')
-  if (parts.length !== 2) return null
+    const parts = trimmed.split(',')
+    if (parts.length !== 2) return null
 
-  const lat = Number(parts[0])
-  const lng = Number(parts[1])
+    const lat = Number(parts[0])
+    const lng = Number(parts[1])
 
-  if (Number.isNaN(lat) || Number.isNaN(lng)) return null
+    if (Number.isNaN(lat) || Number.isNaN(lng)) return null
 
-  return { lat, lng }
-}
-
+    return { lat, lng }
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
@@ -114,7 +138,6 @@ const parsePosition = (position?: string): { lat: number; lng: number } | null =
           const isMine = myId && message.userid === myId
           const coords = parsePosition(message.position)
           const hasLocation = !!coords
-
 
           return (
             <div
@@ -175,7 +198,7 @@ const parsePosition = (position?: string): { lat: number; lng: number } | null =
                         color: '#c33',
                         fontSize: '0.9em',
                       }}>
-                        ⚠️ Foto nicht verfügbar
+                        ⚠️ Photo not available
                       </div>
                     ) : (
                       /* Zeige Ladesymbol wenn Abrufen lädt */
@@ -186,42 +209,42 @@ const parsePosition = (position?: string): { lat: number; lng: number } | null =
                         color: '#666',
                         fontSize: '0.9em',
                       }}>
-                        ⏳ Lade Foto...
+                        ⏳ Load photo...
                       </div>
                     )}
                   </div>
                 )}
                 {/* Standortnachricht anzeigen */}
-{hasLocation && coords && (
-  <div style={{ marginBottom: message.text ? 8 : 0 }}>
-    {/* Titel der Standortnachricht */}
-    <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
-      📍 Shared location
-    </div>
+                {hasLocation && coords && (
+                  <div style={{ marginBottom: message.text ? 8 : 0 }}>
+                    {/* Titel der Standortnachricht */}
+                    <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                      📍 Shared location
+                    </div>
 
-    {/* Koordinaten */}
-    <div style={{ fontSize: '0.9em', marginBottom: 4 }}>
-      {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
-    </div>
+                    {/* Koordinaten */}
+                    <div style={{ fontSize: '0.9em', marginBottom: 4 }}>
+                      {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
+                    </div>
 
-    {/* Link zu Google Maps */}
-    <a
-      href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      style={{
-        fontSize: '0.9em',
-        textDecoration: 'underline',
-        color: isMine ? '#bfdbfe' : '#2563eb',
-      }}
-    >
-      Open in Maps
-    </a>
-  </div>
-)}
+                    {/* Link zu Google Maps */}
+                    <a
+                      href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        fontSize: '0.9em',
+                        textDecoration: 'underline',
+                        color: isMine ? '#bfdbfe' : '#2563eb',
+                      }}
+                    >
+                      Open in Maps
+                    </a>
+                  </div>
+                )}
 
-{/* Normaler Text */}
-{message.text && <p style={{ margin: 0 }}>{message.text}</p>}
+                {/* Normaler Text */}
+                {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
 
                 {(message.timestamp || message.time) && (
                   <div

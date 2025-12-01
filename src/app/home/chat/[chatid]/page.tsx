@@ -10,11 +10,6 @@ import CameraModal from '@/components/CameraModal'
 import { useToast } from '@/contexts/ToastContext'  
 import { Camera, MapPin, ArrowLeft, MoreVertical } from "lucide-react"
 
-
-
-
-
-
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
@@ -34,9 +29,10 @@ export default function ChatPage() {
   const { addToast } = useToast() 
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-     // Laden, falls chatid existiert
+    // Laden, falls chatid existiert
     if (chatid) {
       fetchMessages()
       fetchChatName()
@@ -44,18 +40,23 @@ export default function ChatPage() {
   }, [chatid])
 
   useEffect(() => {
-  function handleClickOutside(event: MouseEvent) {
-    if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-      setMenuOpen(false)
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setMenuOpen(false)
+      }
     }
-  }
 
-  document.addEventListener('mousedown', handleClickOutside)
-  return () => document.removeEventListener('mousedown', handleClickOutside)
-}, [])
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
+  // Automatisch zum Ende scrollen wenn Nachrichten geladen werden
+  useEffect(() => {
+    if (messagesContainerRef.current && messages.length > 0) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+    }
+  }, [messages])
 
-  
   //Chatnamen um ihn anzeigen zu lassen
   async function fetchChatName() {
     try {
@@ -79,11 +80,11 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
-       // Ruft die API /api/messages auf, um die Nachrichten für die gegebene chatid zu holen
+      // Ruft die API /api/messages auf, um die Nachrichten für die gegebene chatid zu holen
       setLoading(true)
       const response = await fetch(`/api/messages?chatid=${chatid}&fromid=0`)
       
-       if (!response.ok) {
+      if (!response.ok) {
         throw new Error('Failed to fetch messages')
       }
       // Speichert die Daten
@@ -126,7 +127,8 @@ export default function ChatPage() {
       setLoading(false)
     }
   }
-// Zurück zur Home-Seite
+
+  // Zurück zur Home-Seite
   const handleBack = () => {
     router.push('/home')
   }
@@ -152,16 +154,16 @@ export default function ChatPage() {
         photoSize: payload.photo.length,
         hatFoto: !!capturedPhoto
       })
-       // Ruft die
+      // Ruft die API auf
       const response = await fetch('/api/messages/send', {
-         //Sende die Nachricht im Body der Anfrage
+        // Sende die Nachricht im Body der Anfrage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       })
-     //Lese die Antwort
+      // Lese die Antwort
       const responseData = await response.json()
       console.log('Send message response:', responseData)
 
@@ -182,7 +184,7 @@ export default function ChatPage() {
       // Eingabefeld leeren und Foto zurücksetzen
       setMessageText('')
       setCapturedPhoto(null)
-       // Nachrichten neu laden, um die neue anzuzeigen
+      // Nachrichten neu laden, um die neue anzuzeigen
       await fetchMessages()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
@@ -191,8 +193,6 @@ export default function ChatPage() {
       setSending(false)
     }
   }
-
-
 
   const handleCapturePhoto = (imageData: string) => {
     // Komprimiere das Foto um Speichergröße zu reduzieren
@@ -232,95 +232,91 @@ export default function ChatPage() {
   }
 
   //Standort teilen Funktion
-const handleShareLocation = () => {
-  //Prüfen ob der Browser Geolocation unterstützt
-  if (!navigator.geolocation) {
-    addToast('Geolocation wird von diesem Browser nicht unterstützt.')
-    return
-  }
+  const handleShareLocation = () => {
+    //Prüfen ob der Browser Geolocation unterstützt
+    if (!navigator.geolocation) {
+      addToast('Geolocation wird von diesem Browser nicht unterstützt.')
+      return
+    }
 
-  //Standort abrufen
-  navigator.geolocation.getCurrentPosition(
-    async (pos) => {
+    //Standort abrufen
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        console.log("Geolocation details:", {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy_in_meters: pos.coords.accuracy,
+          altitudeAccuracy: pos.coords.altitudeAccuracy,
+          timestamp: new Date(pos.timestamp).toISOString()
+        });
 
-      console.log("Geolocation details:", {
-        latitude: pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        accuracy_in_meters: pos.coords.accuracy,
-        altitudeAccuracy: pos.coords.altitudeAccuracy,
-        timestamp: new Date(pos.timestamp).toISOString()
-      });
+        const accuracy = pos.coords.accuracy;
+        const lat = pos.coords.latitude
+        const lng = pos.coords.longitude
 
-      
-
-      const accuracy = pos.coords.accuracy;
-      const lat = pos.coords.latitude
-      const lng = pos.coords.longitude
-
-      //Genauigkeit prüfen
-      if (accuracy !== null && accuracy > 200) { 
-        const accuracyKm = (accuracy / 1000).toFixed(1);
-        addToast(
-          `Location accuracy is about ${accuracyKm} km (${Math.round(accuracy)}m).`
-        );
-      }
-
-      try {
-        setSending(true)
-
-        //Standortnachricht an die API senden
-        const response = await fetch('/api/messages/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            text: '',                 
-            chatid: chatid,
-            position: `${lat},${lng}` //Koordinaten als Zeichenkette
-          }),
-        })
-
-        const responseData = await response.json()
-        console.log('Send location response:', responseData)
-
-        if (!response.ok) {
-          throw new Error(responseData.error || 'Failed to send location')
+        //Genauigkeit prüfen
+        if (accuracy !== null && accuracy > 200) { 
+          const accuracyKm = (accuracy / 1000).toFixed(1);
+          addToast(
+            `Location accuracy is about ${accuracyKm} km (${Math.round(accuracy)}m).`
+          );
         }
 
-        await fetchMessages()
-        
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to send location'
-        addToast('Error: ' + errorMessage)
-      } finally {
-        setSending(false)
-      }
-    },
-    (error) => {
-      // Fehlerbehandlung für Standortzugriff
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          addToast('Location permission denied.')
-          break
-        case error.POSITION_UNAVAILABLE:
-          addToast('Location unavailable.')
-          break
-        case error.TIMEOUT:
-          addToast('Location request timed out.')
-          break
-        default:
-          addToast('Unknown location error.')
-      }
-    },
-    {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0
-    }
-  )
-}
+        try {
+          setSending(true)
 
+          //Standortnachricht an die API senden
+          const response = await fetch('/api/messages/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              text: '',                 
+              chatid: chatid,
+              position: `${lat},${lng}` //Koordinaten als Zeichenkette
+            }),
+          })
+
+          const responseData = await response.json()
+          console.log('Send location response:', responseData)
+
+          if (!response.ok) {
+            throw new Error(responseData.error || 'Failed to send location')
+          }
+
+          await fetchMessages()
+          
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to send location'
+          addToast('Error: ' + errorMessage)
+        } finally {
+          setSending(false)
+        }
+      },
+      (error) => {
+        // Fehlerbehandlung für Standortzugriff
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            addToast('Location permission denied.')
+            break
+          case error.POSITION_UNAVAILABLE:
+            addToast('Location unavailable.')
+            break
+          case error.TIMEOUT:
+            addToast('Location request timed out.')
+            break
+          default:
+            addToast('Unknown location error.')
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    )
+  }
 
   const inviteToChat = async (chatid: string | number, invitedhash: string) => {
     const response = await fetch('/api/chats/invite', {
@@ -345,167 +341,177 @@ const handleShareLocation = () => {
   }
 
   return (
-  <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-600 to-indigo-700">
-    <main className="flex min-h-screen items-center justify-center p-4">
-      {/* Zentrale Chat-Card */}
-      <div className="flex h-[80vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-2 border-b border-gray-200 p-4">
-          {/* Back-Button als Icon */}
-          <button
-            onClick={handleBack}
-            className="flex h-9 w-9 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            aria-label="Back to chats"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Header - Sticky wie auf der Home-Page */}
+      <div className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
+        <div className="mx-auto max-w-2xl px-4 sm:px-6 py-3.5">
+          <div className="flex items-center gap-3">
+            {/* Back Button */}
+            <button
+              onClick={handleBack}
+              className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-300 bg-white text-slate-700 transition hover:bg-slate-50 hover:border-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95"
+              aria-label="Back to chats"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
 
-          {/* Titel/Chatname */}
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-semibold text-gray-900">
-              {chatname}
-            </h1>
-          </div>
-
-          {/* Overflow-Menü mit Invite und Leave */}
-          {chatid !== '0' && (
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setMenuOpen(v => !v)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-haspopup="true"
-                aria-expanded={menuOpen ? 'true' : 'false'}
-                aria-label="More actions"
-              >
-                <MoreVertical className="h-5 w-5 text-gray-700" />
-              </button>
-
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 z-10 mt-2 w-48 rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg"
-                >
-                  {/* Invite*/}
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false)
-                      setInviteDialogOpen(true)
-                    }}
-                    className="block w-full px-3 py-2 text-left hover:bg-gray-50"
-                    role="menuitem"
-                  >
-                    Invite user
-                  </button>
-
-                  <div className="my-1 border-t border-gray-100" />
-
-                  {/* Leave*/}
-                  <button
-                    onClick={() => {
-                      setMenuOpen(false)
-                      setLeaveDialogOpen(true)
-                    }}
-                    className="block w-full px-3 py-2 text-left text-red-600 hover:bg-red-50"
-                    role="menuitem"
-                  >
-                    Leave chat
-                  </button>
-                </div>
-              )}
+            {/* Chat Name */}
+            <div className="flex-1 min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
+                {chatname}
+              </h1>
             </div>
-          )}
-        </div>
 
+            {/* Menu Button */}
+            {chatid !== '0' && (
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen(v => !v)}
+                  className="flex h-10 w-10 items-center justify-center rounded-lg transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-haspopup="true"
+                  aria-expanded={menuOpen ? 'true' : 'false'}
+                  aria-label="More actions"
+                >
+                  <MoreVertical className="h-5 w-5 text-slate-700" />
+                </button>
 
-        {/* Nachrichtenliste eigener Scrollbereich */}
-        <div className="flex-1 overflow-y-auto bg-slate-50 px-5 py-5 sm:px-6 sm:py-6">
-          <MessageList
-            messages={messages}
-            loading={loading}
-            error={error}
-            photoCache={photoCache}
-          />
-        </div>
+                {menuOpen && (
+                  <div
+                    role="menu"
+                    className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
+                  >
+                    {/* Invite */}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        setInviteDialogOpen(true)
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition"
+                      role="menuitem"
+                    >
+                      Invite user
+                    </button>
 
+                    <div className="my-1 border-t border-slate-100" />
 
-       <form
-        onSubmit={handleSendMessage}
-        className="border-t border-slate-200 bg-white"
-      >
-        {capturedPhoto && (
-          <div className="mx-4 mt-3 mb-1 flex items-center gap-3 rounded-lg bg-blue-50 p-2 text-sm text-slate-700">
-            <img
-              src={capturedPhoto}
-              alt="Angehängtes Foto"
-              className="h-12 w-12 rounded object-cover"
-            />
-            <span className="flex-1 text-xs sm:text-sm">Foto hinzugefügt</span>
-            <button
-              type="button"
-              onClick={() => setCapturedPhoto(null)}
-              className="rounded-md bg-rose-500 px-2 py-1 text-xs font-medium text-white hover:bg-rose-600"
-            >
-              Remove
-            </button>
+                    {/* Leave */}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        setLeaveDialogOpen(true)
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition"
+                      role="menuitem"
+                    >
+                      Leave chat
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-
-        <div className="flex items-center gap-2 px-4 py-3">
-          {/* Message-Bar mit Icons innen rechts */}
-          <div className="flex flex-1 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 py-2 shadow-sm">
-            <input
-              type="text"
-              value={messageText}
-              onChange={e => setMessageText(e.target.value)}
-              placeholder="Type your message..."
-              disabled={sending}
-              className="flex-1 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
-            />
-
-            {/* Kamera-Icon in der Bar */}
-            <button
-              type="button"
-              onClick={() => setIsCameraModalOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
-              title="Take photo"
-            >
-              <Camera className="h-5 w-5" />
-            </button>
-
-            {/* Standort-Icon in der Bar */}
-            <button
-              type="button"
-              onClick={handleShareLocation}
-              disabled={sending}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300"
-              title="Share location"
-            >
-              <MapPin className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Senden-Button rechts daneben */}
-          <button
-            type="submit"
-            disabled={sending || (!messageText.trim() && !capturedPhoto)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition ${
-              sending || (!messageText.trim() && !capturedPhoto)
-                ? 'cursor-not-allowed bg-slate-400'
-                : 'bg-emerald-500 hover:bg-emerald-600'
-            }`}
-          >
-            {sending ? 'Sending…' : 'Send'}
-          </button>
         </div>
-      </form>
-
-
-
       </div>
 
-      {/* Invite-Dialog */}
+      {/* Messages Container */}
+      <div 
+        ref={messagesContainerRef}
+        className="mx-auto max-w-2xl px-4 sm:px-6 overflow-y-auto py-6"
+        style={{ height: 'calc(100vh - 140px)', paddingBottom: '80px' }}
+      >
+        <MessageList
+          messages={messages}
+          loading={loading}
+          error={error}
+          photoCache={photoCache}
+        />
+      </div>
+
+      {/* Input Area - Fixed at Bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg">
+        <div className="mx-auto max-w-2xl w-full px-3 sm:px-6">
+          <form onSubmit={handleSendMessage}>
+            {/* Photo Preview */}
+            {capturedPhoto && (
+              <div className="py-2.5 flex items-center gap-2 border-b border-slate-100">
+                <img
+                  src={capturedPhoto}
+                  alt="Attached photo"
+                  className="h-12 w-12 rounded-lg object-cover border border-slate-200"
+                />
+                <span className="flex-1 text-sm text-slate-600">Photo attached</span>
+                <button
+                  type="button"
+                  onClick={() => setCapturedPhoto(null)}
+                  className="rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600 transition active:scale-95"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
+
+            {/* Input Bar */}
+            <div className="flex items-center gap-2 py-3.5">
+              {/* Message Input with Icons */}
+              <div className="flex flex-1 min-w-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2.5 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition">
+                <input
+                  type="text"
+                  value={messageText}
+                  onChange={e => setMessageText(e.target.value)}
+                  placeholder="Type your message..."
+                  disabled={sending}
+                  className="flex-1 min-w-0 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
+                />
+
+                {/* Camera Icon */}
+                <button
+                  type="button"
+                  onClick={() => setIsCameraModalOpen(true)}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95"
+                  title="Take photo"
+                >
+                  <Camera className="h-5 w-5" />
+                </button>
+
+                {/* Location Icon */}
+                <button
+                  type="button"
+                  onClick={handleShareLocation}
+                  disabled={sending}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:text-slate-300 active:scale-95"
+                  title="Share location"
+                >
+                  <MapPin className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Send Button with Icon */}
+              <button
+                type="submit"
+                disabled={sending || (!messageText.trim() && !capturedPhoto)}
+                className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg transition shadow-sm active:scale-95 ${
+                  sending || (!messageText.trim() && !capturedPhoto)
+                    ? 'cursor-not-allowed bg-slate-300 text-slate-500'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                }`}
+                title={sending ? 'Sending...' : 'Send message'}
+              >
+                {sending ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Invite Dialog */}
       <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-lg">
           <DialogHeader>
             <DialogTitle>Invite User</DialogTitle>
           </DialogHeader>
@@ -514,23 +520,44 @@ const handleShareLocation = () => {
             value={userHash}
             onChange={e => setUserHash(e.target.value)}
             placeholder="Enter user hash"
-            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-400/40"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' && userHash) {
+                inviteToChat(chatid, userHash)
+                  .then(() => {
+                    addToast('Invitation sent')
+                  })
+                  .catch(err => addToast('Error: ' + err.message))
+                  .finally(() => {
+                    setInviteDialogOpen(false)
+                    setUserHash('')
+                  })
+              }
+            }}
           />
-          <DialogFooter>
+          <DialogFooter className="gap-3">
+            <Button
+              onClick={() => setInviteDialogOpen(false)}
+              variant="outline"
+              className="flex-1"
+            >
+              Cancel
+            </Button>
             <Button
               onClick={() => {
                 if (userHash) {
                   inviteToChat(chatid, userHash)
                     .then(() => {
-                      addToast('Einladung gesendet')
+                      addToast('Invitation sent')
                     })
-                    .catch(err => addToast('Fehler: ' + err.message))
+                    .catch(err => addToast('Error: ' + err.message))
                     .finally(() => {
                       setInviteDialogOpen(false)
                       setUserHash('')
                     })
                 }
               }}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
             >
               Send Invitation
             </Button>
@@ -538,34 +565,38 @@ const handleShareLocation = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Leave-Dialog */}
+      {/* Leave Dialog */}
       <Dialog open={isLeaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
-        <DialogContent>
+        <DialogContent className="rounded-lg">
           <DialogHeader>
             <DialogTitle>Leave Chat</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-700">
-            Are you sure you want to leave this chat?
+          <p className="text-sm text-slate-600">
+            Are you sure you want to leave this chat? You won't be able to see messages anymore.
           </p>
-          <DialogFooter>
+          <DialogFooter className="gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setLeaveDialogOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
             <Button
               onClick={() => {
                 leaveChat(chatid)
                   .then(() => {
-                    addToast('Chat verlassen')
+                    addToast('Left chat successfully')
                     router.push('/home')
                   })
-                  .catch(err => addToast('Fehler: ' + err.message))
+                  .catch(err => addToast('Error: ' + err.message))
                   .finally(() => {
                     setLeaveDialogOpen(false)
                   })
               }}
-              className="bg-rose-500 text-white hover:bg-rose-600"
+              className="flex-1 bg-red-500 text-white hover:bg-red-600"
             >
               Yes, leave chat
-            </Button>
-            <Button variant="outline" onClick={() => setLeaveDialogOpen(false)}>
-              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -577,7 +608,5 @@ const handleShareLocation = () => {
         onCapture={handleCapturePhoto}
       />
     </main>
-  </div>
-)
-
+  )
 }
