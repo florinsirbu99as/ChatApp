@@ -18,6 +18,7 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false)
   const [isInviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [isLeaveDialogOpen, setLeaveDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false)
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
   const [photoCache, setPhotoCache] = useState<Record<string, string>>({})
@@ -338,6 +339,17 @@ export default function ChatPage() {
     return data
   }
 
+  const deleteChat = async (chatid: string | number) => {
+    const response = await fetch('/api/chats/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chatid }),
+    })
+    const data = await response.json()
+    if (!response.ok) throw new Error(data.error || 'Deleting failed')
+    return data
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header - Sticky wie auf der Home-Page */}
@@ -398,10 +410,24 @@ export default function ChatPage() {
                         setMenuOpen(false)
                         setLeaveDialogOpen(true)
                       }}
-                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition"
+                      className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition"
                       role="menuitem"
                     >
                       Leave chat
+                    </button>
+
+                    <div className="my-1 border-t border-slate-100" />
+
+                    {/*Delete*/}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false)
+                        setDeleteDialogOpen(true)
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition"
+                      role="menuitem"
+                    >
+                      Delete chat
                     </button>
                   </div>
                 )}
@@ -595,6 +621,43 @@ export default function ChatPage() {
               className="flex-1 bg-red-500 text-white hover:bg-red-600"
             >
               Yes, leave chat
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete-Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="rounded-lg">
+          <DialogHeader>
+            <DialogTitle>Delete Chat</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-slate-600">
+            Are you sure you want to delete this chat? You won't be able to restore it anymore.
+          </p>
+          <DialogFooter className="gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => setDeleteDialogOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                deleteChat(chatid)
+                  .then(() => {
+                    addToast('Deleted chat successfully')
+                    router.push('/home')
+                  })
+                  .catch(err => addToast('Error: ' + err.message))
+                  .finally(() => {
+                    setDeleteDialogOpen(false)
+                  })
+              }}
+              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+            >
+              Yes, delete chat
             </Button>
           </DialogFooter>
         </DialogContent>
