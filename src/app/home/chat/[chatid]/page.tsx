@@ -50,7 +50,7 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Automatisch zum Ende scrollen wenn Nachrichten geladen werden
+  //Seite am unteren Ende öffnen
   useEffect(() => {
     if (messagesContainerRef.current && messages.length > 0) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
@@ -127,7 +127,6 @@ export default function ChatPage() {
       setLoading(false)
     }
   }
-
   // Zurück zur Home-Seite
   const handleBack = () => {
     router.push('/home')
@@ -156,14 +155,14 @@ export default function ChatPage() {
       })
       // Ruft die API auf
       const response = await fetch('/api/messages/send', {
-        // Sende die Nachricht im Body der Anfrage
+        //Sende die Nachricht im Body der Anfrage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       })
-      // Lese die Antwort
+      //Lese die Antwort
       const responseData = await response.json()
       console.log('Send message response:', responseData)
 
@@ -284,7 +283,6 @@ export default function ChatPage() {
           if (!response.ok) {
             throw new Error(responseData.error || 'Failed to send location')
           }
-
           await fetchMessages()
           
         } catch (err) {
@@ -362,7 +360,7 @@ export default function ChatPage() {
               </h1>
             </div>
 
-            {/* Menu Button */}
+            {/* Menu */}
             {chatid !== '0' && (
               <div className="relative" ref={menuRef}>
                 <button
@@ -380,7 +378,7 @@ export default function ChatPage() {
                     role="menu"
                     className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
                   >
-                    {/* Invite */}
+                    {/* Invite*/}
                     <button
                       onClick={() => {
                         setMenuOpen(false)
@@ -394,7 +392,7 @@ export default function ChatPage() {
 
                     <div className="my-1 border-t border-slate-100" />
 
-                    {/* Leave */}
+                    {/* Leave*/}
                     <button
                       onClick={() => {
                         setMenuOpen(false)
@@ -427,7 +425,7 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* Input Area - Fixed at Bottom */}
+      {/* Input Bereich */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg">
         <div className="mx-auto max-w-2xl w-full px-3 sm:px-6">
           <form onSubmit={handleSendMessage}>
@@ -463,7 +461,7 @@ export default function ChatPage() {
                   className="flex-1 min-w-0 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
                 />
 
-                {/* Camera Icon */}
+                {/* Kamera-Icon */}
                 <button
                   type="button"
                   onClick={() => setIsCameraModalOpen(true)}
@@ -473,7 +471,7 @@ export default function ChatPage() {
                   <Camera className="h-5 w-5" />
                 </button>
 
-                {/* Location Icon */}
+                {/* Standort-Icon */}
                 <button
                   type="button"
                   onClick={handleShareLocation}
@@ -565,7 +563,7 @@ export default function ChatPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Leave Dialog */}
+      {/* Leave-Dialog */}
       <Dialog open={isLeaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent className="rounded-lg">
           <DialogHeader>

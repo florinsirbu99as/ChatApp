@@ -156,7 +156,7 @@ export default function HomePage() {
                           <h3 className="font-semibold text-slate-900">
                             {chat.chatname || `Chat ${chat.chatid}`}
                           </h3>
-                          <p className="text-xs text-slate-500 mt-1">ID: {String(chat.chatid).slice(0, 8)}...</p>
+                          
                         </div>
                         <div className="text-blue-600 ml-2">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
