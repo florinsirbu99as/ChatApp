@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '
 import { Button } from '@/components/ui/button'
 import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
+import InviteUserModal from '@/components/InviteUserModal'
 import { useToast } from '@/contexts/ToastContext'  
 import { Camera, MapPin, ArrowLeft, MoreVertical } from "lucide-react"
 
@@ -22,7 +23,6 @@ export default function ChatPage() {
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false)
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
   const [photoCache, setPhotoCache] = useState<Record<string, string>>({})
-  const [userHash, setUserHash] = useState('')
   const router = useRouter()
   const params = useParams()
   const chatid = params.chatid as string
@@ -33,7 +33,6 @@ export default function ChatPage() {
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    // Laden, falls chatid existiert
     if (chatid) {
       fetchMessages()
       fetchChatName()
@@ -83,6 +82,7 @@ export default function ChatPage() {
     try {
       // Ruft die API /api/messages auf, um die Nachrichten für die gegebene chatid zu holen
       setLoading(true)
+      setLoading(true)
       const response = await fetch(`/api/messages?chatid=${chatid}&fromid=0`)
       
       if (!response.ok) {
@@ -101,13 +101,14 @@ export default function ChatPage() {
       const unmatchedPhotoids = messages
         .filter((msg: Message) => msg.photoid && msg.userid === myId && !updatedPhotoCache[msg.photoid])
         .map((msg: Message) => msg.photoid)
+        .filter((photoid: string) => photoid !== undefined)
       
-      // Get list of timestamp-keyed photos that haven't been matched yet
+         // Get list of timestamp-keyed photos that haven't been matched yet
       const unmatchedTimestampPhotos = Object.entries(photoCache)
         .filter(([key]) => key.match(/^\d+$/) && key !== 'photoid') // numeric keys
         .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // sort by timestamp desc
       
-      // Match them up: oldest photoid gets newest photo
+        // Match them up: oldest photoid gets newest photo
       unmatchedPhotoids.forEach((photoid: string, index: number) => {
         if (unmatchedTimestampPhotos[index]) {
           const [timestampKey, photoData] = unmatchedTimestampPhotos[index]
@@ -156,7 +157,7 @@ export default function ChatPage() {
       })
       // Ruft die API auf
       const response = await fetch('/api/messages/send', {
-        //Sende die Nachricht im Body der Anfrage
+         //Sende die Nachricht im Body der Anfrage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -317,17 +318,6 @@ export default function ChatPage() {
     )
   }
 
-  const inviteToChat = async (chatid: string | number, invitedhash: string) => {
-    const response = await fetch('/api/chats/invite', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chatid, invitedhash }),
-    })
-    const data = await response.json()
-    if (!response.ok) throw new Error(data.error || 'Invite failed')
-    return data
-  }
-
   const leaveChat = async (chatid: string | number) => {
     const response = await fetch('/api/chats/leave', {
       method: 'POST',
@@ -352,7 +342,7 @@ export default function ChatPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header - Sticky wie auf der Home-Page */}
+      {/* Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 py-3.5">
           <div className="flex items-center gap-3">
@@ -473,7 +463,7 @@ export default function ChatPage() {
                 </button>
               </div>
             )}
-
+              
             {/* Input Bar */}
             <div className="flex items-center gap-2 py-3.5">
               {/* Message Input with Icons */}
@@ -533,61 +523,15 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Invite Dialog */}
-      <Dialog open={isInviteDialogOpen} onOpenChange={setInviteDialogOpen}>
-        <DialogContent className="rounded-lg">
-          <DialogHeader>
-            <DialogTitle>Invite User</DialogTitle>
-          </DialogHeader>
-          <input
-            type="text"
-            value={userHash}
-            onChange={e => setUserHash(e.target.value)}
-            placeholder="Enter user hash"
-            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter' && userHash) {
-                inviteToChat(chatid, userHash)
-                  .then(() => {
-                    addToast('Invitation sent')
-                  })
-                  .catch(err => addToast('Error: ' + err.message))
-                  .finally(() => {
-                    setInviteDialogOpen(false)
-                    setUserHash('')
-                  })
-              }
-            }}
-          />
-          <DialogFooter className="gap-3">
-            <Button
-              onClick={() => setInviteDialogOpen(false)}
-              variant="outline"
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (userHash) {
-                  inviteToChat(chatid, userHash)
-                    .then(() => {
-                      addToast('Invitation sent')
-                    })
-                    .catch(err => addToast('Error: ' + err.message))
-                    .finally(() => {
-                      setInviteDialogOpen(false)
-                      setUserHash('')
-                    })
-                }
-              }}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Send Invitation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* NEU: InviteUserModal statt altem Dialog */}
+      <InviteUserModal
+        isOpen={isInviteDialogOpen}
+        onClose={() => setInviteDialogOpen(false)}
+        chatid={chatid}
+        onInviteSent={(message) => {
+          addToast(message)
+        }}
+      />
 
       {/* Leave-Dialog */}
       <Dialog open={isLeaveDialogOpen} onOpenChange={setLeaveDialogOpen}>

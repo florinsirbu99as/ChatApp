@@ -27,7 +27,7 @@ export interface Profile {
   userid: string
   nickname: string
   fullname: string
-  // Add other profile properties as needed
+  userhash?: string
 }
 
 export interface Invite {

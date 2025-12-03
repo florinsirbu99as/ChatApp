@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import AccountActions from '@/components/AccountActions'
+import InvitesList from '@/components/InvitesList'
 import type { Chat } from '@/types/api'
 import MyInviteCode from '@/components/MyInviteCode'
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
@@ -79,7 +80,11 @@ export default function HomePage() {
     }
   }
 
-  // Don't render interactive content until hydrated
+  //Callback wenn ein Invite akzeptiert wurde
+  const handleInviteAccepted = () => {
+    fetchChats() //Lädt Chats neu um den neuen Chat anzuzeigen
+  }
+
   if (!isHydrated) {
     return (
       <main className="bg-gradient-to-br from-slate-50 to-slate-100">
@@ -112,6 +117,9 @@ export default function HomePage() {
         <div className="mb-6">
           <MyInviteCode />
         </div>
+
+        {/*Invites Liste */}
+        <InvitesList onInviteAccepted={handleInviteAccepted} />
 
         {/* New Chat Button */}
         <Button
@@ -156,7 +164,6 @@ export default function HomePage() {
                           <h3 className="font-semibold text-slate-900">
                             {chat.chatname || `Chat ${chat.chatid}`}
                           </h3>
-                          
                         </div>
                         <div className="text-blue-600 ml-2">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
