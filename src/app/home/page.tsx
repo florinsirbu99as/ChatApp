@@ -113,11 +113,6 @@ export default function HomePage() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-2xl px-4 sm:px-6 py-6 sm:py-8" suppressHydrationWarning>
-        {/* Invite Code Card */}
-        <div className="mb-6">
-          <MyInviteCode />
-        </div>
-
         {/*Invites Liste */}
         <InvitesList onInviteAccepted={handleInviteAccepted} />
 

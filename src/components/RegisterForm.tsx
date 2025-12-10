@@ -48,7 +48,7 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
   return (
     <div className="space-y-3">
       <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">
-        Create Account
+        Welcome
       </h2>
       
       <div className="grid grid-cols-2 gap-3">
@@ -122,7 +122,7 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
             onClick={onSwitchToLogin}
             className="text-blue-500 hover:text-blue-700 font-medium"
           >
-            Sign in
+            Log in
           </button>
         </p>
       </div>

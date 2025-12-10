@@ -16,17 +16,13 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
       });
 
       const data = await res.json();
-      console.log('Antwort vom Server:', data);
-
       if (res.ok) {
         localStorage.setItem('userid', username);
-        // Redirect to the simple home page
         window.location.href = '/home'
       } else {
         alert('Error: ' + (data.error || 'Unknown error'));
       }
     } catch (err) {
-      console.error('Fehler beim Login:', err);
       alert('Network error or server unavailable.')
     }
   };
@@ -34,7 +30,7 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
-        Welcome Back
+        Welcome
       </h2>
       
       <div>
@@ -64,7 +60,7 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
         onClick={handleLogin}
         className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
       >
-        Sign In
+        Log In
       </button>
 
       <div className="text-center">

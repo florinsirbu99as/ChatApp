@@ -59,10 +59,10 @@ export default function InvitesList({ onInviteAccepted }: InvitesListProps) {
         throw new Error(data.error || 'Failed to join chat')
       }
       
-      //Entferne Invite aus der Liste
+      //Entfernt Invite aus der Liste
       setInvites(prev => prev.filter(invite => invite.chatid !== chatid))
       
-      //Benachrichtige Parent-Komponente
+      //Benachrichtigt Parent-Komponente
       onInviteAccepted()
     } catch (error: any) {
       alert('Error: ' + error.message)
@@ -83,7 +83,7 @@ export default function InvitesList({ onInviteAccepted }: InvitesListProps) {
   }
 
   if (invites.length === 0) {
-    return null // Zeige nichts an, wenn keine Invites vorhanden sind
+    return null //zeigt nichts an, wenn keine Invites vorhanden sind
   }
 
   return (

@@ -25,31 +25,7 @@ export default function HomePage() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-md px-4 sm:px-6 py-8">
-        {/* Toggle Buttons */}
-        <div className="bg-white rounded-lg shadow-sm p-1 mb-6 border border-slate-200">
-          <div className="flex gap-1">
-            <button
-              onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2.5 px-4 rounded-md font-semibold text-sm transition-all ${
-                isLogin
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              Login
-            </button>
-            <button
-              onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2.5 px-4 rounded-md font-semibold text-sm transition-all ${
-                !isLogin
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              Register
-            </button>
-          </div>
-        </div>
+      
 
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
