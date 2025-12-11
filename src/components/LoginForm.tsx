@@ -28,47 +28,47 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
   };
   
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-6">
+    <div className="space-y-5">
+      <h2 className="text-2xl font-bold text-slate-900 text-center">
         Welcome
       </h2>
       
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Username
         </label>
         <input
           type="text"
           name="username"
           placeholder="Enter your username"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Password
         </label>
         <input
           type="password"
           placeholder="Enter your password"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 
       <button 
         onClick={handleLogin}
-        className="w-full bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+        className="w-full bg-blue-600 text-white py-3 text-base font-semibold rounded-lg hover:bg-blue-700 transition-colors"
       >
         Log In
       </button>
 
-      <div className="text-center">
-        <p className="text-gray-600">
+      <div className="text-center pt-2">
+        <p className="text-sm text-slate-600">
           Don't have an account?{' '}
           <button
             onClick={onSwitchToRegister}
-            className="text-blue-500 hover:text-blue-700 font-medium"
+            className="text-blue-600 hover:text-blue-700 font-semibold"
           >
             Sign up
           </button>

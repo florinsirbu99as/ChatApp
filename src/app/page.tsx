@@ -13,7 +13,7 @@ export default function HomePage() {
       <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-md px-4 sm:px-6 py-6 sm:py-8">
           <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
               ChatApp
             </h1>
             <p className="text-sm text-slate-600">
@@ -25,11 +25,8 @@ export default function HomePage() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-md px-4 sm:px-6 py-8">
-      
-
         {/* Form Card */}
         <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-          {/* Forms */}
           {isLogin ? (
             <LoginForm onSwitchToRegister={() => setIsLogin(false)} />
           ) : (
@@ -39,7 +36,7 @@ export default function HomePage() {
 
         {/* Footer Info */}
         <div className="mt-6 text-center">
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-500">
             By Florin Sirbu & Charlotte Brückner
           </p>
         </div>

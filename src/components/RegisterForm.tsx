@@ -31,8 +31,6 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
       });
 
       const data = await res.json();
-      console.log("Antwort vom Server:", data);
-
       if (res.ok) {
         alert("You created an account! You can now sign in.");
         window.location.reload(); 
@@ -46,81 +44,81 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
   };
 
   return (
-    <div className="space-y-3">
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-4">
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-slate-900 text-center">
         Welcome
       </h2>
       
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             First Name
           </label>
           <input
             type="text"
             placeholder="John"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+            className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
             Last Name
           </label>
           <input
             type="text"
             placeholder="Doe"
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+            className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Username
         </label>
         <input
           type="text"
           name="username"
           placeholder="johndoe"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Password
         </label>
         <input
           type="password"
           placeholder="Create a strong password"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           Confirm Password
         </label>
         <input
           type="password"
           placeholder="Confirm your password"
-          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+          className="w-full px-4 py-3 text-base border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
         />
       </div>
 
       <button 
         onClick={handleRegister}
-        className="w-full bg-blue-500 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+        className="w-full bg-blue-600 text-white py-3 text-base font-semibold rounded-lg hover:bg-blue-700 transition-colors"
       >
         Create Account
       </button>
 
-      <div className="text-center pt-1">
-        <p className="text-gray-600">
+      <div className="text-center pt-2">
+        <p className="text-sm text-slate-600">
           Already have an account?{' '}
           <button
             onClick={onSwitchToLogin}
-            className="text-blue-500 hover:text-blue-700 font-medium"
+            className="text-blue-600 hover:text-blue-700 font-semibold"
           >
             Log in
           </button>

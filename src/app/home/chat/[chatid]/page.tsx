@@ -50,14 +50,12 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  //Seite am unteren Ende öffnen
   useEffect(() => {
     if (messagesContainerRef.current && messages.length > 0) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
     }
   }, [messages])
 
-  //Chatnamen um ihn anzeigen zu lassen
   async function fetchChatName() {
     try {
       const res = await fetch('/api/chats')
@@ -80,35 +78,29 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
-      // Ruft die API /api/messages auf, um die Nachrichten für die gegebene chatid zu holen
-      setLoading(true)
       setLoading(true)
       const response = await fetch(`/api/messages?chatid=${chatid}&fromid=0`)
       
       if (!response.ok) {
         throw new Error('Failed to fetch messages')
       }
-      // Speichert die Daten
+      
       const data = await response.json()
       console.log('Fetched messages:', data)
       
-      // Match photos with photoid based on timestamp
       const messages = data.messages || []
       const updatedPhotoCache = { ...photoCache }
       
-      // Get list of photoids that don't have a cache entry yet
       const myId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
       const unmatchedPhotoids = messages
         .filter((msg: Message) => msg.photoid && msg.userid === myId && !updatedPhotoCache[msg.photoid])
         .map((msg: Message) => msg.photoid)
         .filter((photoid: string) => photoid !== undefined)
       
-         // Get list of timestamp-keyed photos that haven't been matched yet
       const unmatchedTimestampPhotos = Object.entries(photoCache)
-        .filter(([key]) => key.match(/^\d+$/) && key !== 'photoid') // numeric keys
-        .sort((a, b) => parseInt(b[0]) - parseInt(a[0])) // sort by timestamp desc
+        .filter(([key]) => key.match(/^\d+$/) && key !== 'photoid')
+        .sort((a, b) => parseInt(b[0]) - parseInt(a[0]))
       
-        // Match them up: oldest photoid gets newest photo
       unmatchedPhotoids.forEach((photoid: string, index: number) => {
         if (unmatchedTimestampPhotos[index]) {
           const [timestampKey, photoData] = unmatchedTimestampPhotos[index]
@@ -129,25 +121,22 @@ export default function ChatPage() {
       setLoading(false)
     }
   }
-  // Zurück zur Home-Seite
+
   const handleBack = () => {
     router.push('/home')
   }
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Überprüfe ob Nachrichtentext oder Foto vorhanden ist
     if (!messageText.trim() && !capturedPhoto) return
     try {
       setSending(true)
-      // Entferne Data-URL-Präfix (erste 22 Zeichen) vom Foto zum Senden
-      // Das Backend erwartet nur den Base64-Teil ohne "data:image/png;base64,"
       const photoData = capturedPhoto ? capturedPhoto.substring(22) : ''
       
       const payload = {
         text: messageText,
         chatid: chatid,
-        photo: photoData, // Nur Base64-Daten werden gesendet
+        photo: photoData,
       }
       console.log('Sende Nachricht mit Foto:', { 
         text: payload.text,
@@ -155,16 +144,15 @@ export default function ChatPage() {
         photoSize: payload.photo.length,
         hatFoto: !!capturedPhoto
       })
-      // Ruft die API auf
+      
       const response = await fetch('/api/messages/send', {
-         //Sende die Nachricht im Body der Anfrage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       })
-      //Lese die Antwort
+      
       const responseData = await response.json()
       console.log('Send message response:', responseData)
 
@@ -172,20 +160,17 @@ export default function ChatPage() {
         throw new Error(responseData.error || 'Failed to send message')
       }
 
-      // Store the photo with current timestamp so we can match it with the photoid when messages are fetched
       if (capturedPhoto) {
         const photoTimestamp = Date.now().toString()
         setPhotoCache(prev => ({
           ...prev,
-          [photoTimestamp]: capturedPhoto, // Store with timestamp key
+          [photoTimestamp]: capturedPhoto,
         }))
         console.log(`Stored photo with key: ${photoTimestamp}`)
       }
 
-      // Eingabefeld leeren und Foto zurücksetzen
       setMessageText('')
       setCapturedPhoto(null)
-      // Nachrichten neu laden, um die neue anzuzeigen
       await fetchMessages()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
@@ -196,17 +181,14 @@ export default function ChatPage() {
   }
 
   const handleCapturePhoto = (imageData: string) => {
-    // Komprimiere das Foto um Speichergröße zu reduzieren
     const img = new Image()
     img.onload = () => {
       const canvas = document.createElement('canvas')
-      // Skaliere auf 25% um Dateigröße drastisch zu reduzieren
       const maxWidth = 320
       const maxHeight = 240
       let width = img.width * 0.25
       let height = img.height * 0.25
       
-      // Stelle sicher, dass Dimensionen nicht größer werden als Max-Werte
       if (width > maxWidth) {
         height = (maxWidth / width) * height
         width = maxWidth
@@ -221,26 +203,22 @@ export default function ChatPage() {
       const ctx = canvas.getContext('2d')
       if (ctx) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-        // Konvertiere zu PNG (beste Kompression)
         const compressedImage = canvas.toDataURL('image/png')
         const sizeInKB = (compressedImage.length / 1024).toFixed(2)
         console.log(`Komprimiertes Foto: ${sizeInKB} KB`)
-        setCapturedPhoto(compressedImage) // Speichere komprimiertes Foto
+        setCapturedPhoto(compressedImage)
         addToast(`Foto bereit zum Senden (${sizeInKB} KB)`)
       }
     }
     img.src = imageData
   }
 
-  //Standort teilen Funktion
   const handleShareLocation = () => {
-    //Prüfen ob der Browser Geolocation unterstützt
     if (!navigator.geolocation) {
       addToast('Geolocation wird von diesem Browser nicht unterstützt.')
       return
     }
 
-    //Standort abrufen
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         console.log("Geolocation details:", {
@@ -255,7 +233,6 @@ export default function ChatPage() {
         const lat = pos.coords.latitude
         const lng = pos.coords.longitude
 
-        //Genauigkeit prüfen
         if (accuracy !== null && accuracy > 200) { 
           const accuracyKm = (accuracy / 1000).toFixed(1);
           addToast(
@@ -266,7 +243,6 @@ export default function ChatPage() {
         try {
           setSending(true)
 
-          //Standortnachricht an die API senden
           const response = await fetch('/api/messages/send', {
             method: 'POST',
             headers: {
@@ -275,7 +251,7 @@ export default function ChatPage() {
             body: JSON.stringify({
               text: '',                 
               chatid: chatid,
-              position: `${lat},${lng}` //Koordinaten als Zeichenkette
+              position: `${lat},${lng}`
             }),
           })
 
@@ -295,7 +271,6 @@ export default function ChatPage() {
         }
       },
       (error) => {
-        // Fehlerbehandlung für Standortzugriff
         switch (error.code) {
           case error.PERMISSION_DENIED:
             addToast('Location permission denied.')
@@ -357,7 +332,7 @@ export default function ChatPage() {
 
             {/* Chat Name */}
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-xl font-bold text-slate-900 truncate">
+              <h1 className="text-2xl font-bold text-slate-900 truncate">
                 {chatname}
               </h1>
             </div>
@@ -380,13 +355,12 @@ export default function ChatPage() {
                     role="menu"
                     className="absolute right-0 z-20 mt-2 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg"
                   >
-                    {/* Invite*/}
                     <button
                       onClick={() => {
                         setMenuOpen(false)
                         setInviteDialogOpen(true)
                       }}
-                      className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition"
+                      className="block w-full px-4 py-2 text-left text-base text-slate-700 hover:bg-slate-50 transition"
                       role="menuitem"
                     >
                       Invite user
@@ -394,13 +368,12 @@ export default function ChatPage() {
 
                     <div className="my-1 border-t border-slate-100" />
 
-                    {/* Leave*/}
                     <button
                       onClick={() => {
                         setMenuOpen(false)
                         setLeaveDialogOpen(true)
                       }}
-                      className="block w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 transition"
+                      className="block w-full px-4 py-2 text-left text-base text-slate-700 hover:bg-slate-50 transition"
                       role="menuitem"
                     >
                       Leave chat
@@ -408,13 +381,12 @@ export default function ChatPage() {
 
                     <div className="my-1 border-t border-slate-100" />
 
-                    {/*Delete*/}
                     <button
                       onClick={() => {
                         setMenuOpen(false)
                         setDeleteDialogOpen(true)
                       }}
-                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition"
+                      className="block w-full px-4 py-2 text-left text-base text-red-600 hover:bg-red-50 transition"
                       role="menuitem"
                     >
                       Delete chat
@@ -457,7 +429,7 @@ export default function ChatPage() {
                 <button
                   type="button"
                   onClick={() => setCapturedPhoto(null)}
-                  className="rounded-lg bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600 transition active:scale-95"
+                  className="rounded-lg bg-red-500 px-3 py-1.5 text-base font-medium text-white hover:bg-red-600 transition active:scale-95"
                 >
                   Remove
                 </button>
@@ -474,7 +446,7 @@ export default function ChatPage() {
                   onChange={e => setMessageText(e.target.value)}
                   placeholder="Type your message..."
                   disabled={sending}
-                  className="flex-1 min-w-0 border-none bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
+                  className="flex-1 min-w-0 border-none bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
                 />
 
                 {/* Kamera-Icon */}
@@ -523,7 +495,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* NEU: InviteUserModal statt altem Dialog */}
       <InviteUserModal
         isOpen={isInviteDialogOpen}
         onClose={() => setInviteDialogOpen(false)}
@@ -537,16 +508,16 @@ export default function ChatPage() {
       <Dialog open={isLeaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
         <DialogContent className="rounded-lg">
           <DialogHeader>
-            <DialogTitle>Leave Chat</DialogTitle>
+            <DialogTitle className="text-2xl">Leave Chat</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600">
+          <p className="text-base text-slate-600">
             Are you sure you want to leave this chat? You won't be able to see messages anymore.
           </p>
           <DialogFooter className="gap-3">
             <Button 
               variant="outline" 
               onClick={() => setLeaveDialogOpen(false)}
-              className="flex-1"
+              className="flex-1 text-base"
             >
               Cancel
             </Button>
@@ -562,7 +533,7 @@ export default function ChatPage() {
                     setLeaveDialogOpen(false)
                   })
               }}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+              className="flex-1 text-base bg-red-500 text-white hover:bg-red-600"
             >
               Yes, leave chat
             </Button>
@@ -574,16 +545,16 @@ export default function ChatPage() {
       <Dialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent className="rounded-lg">
           <DialogHeader>
-            <DialogTitle>Delete Chat</DialogTitle>
+            <DialogTitle className="text-2xl">Delete Chat</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-600">
+          <p className="text-base text-slate-600">
             Are you sure you want to delete this chat? You won't be able to restore it anymore.
           </p>
           <DialogFooter className="gap-3">
             <Button 
               variant="outline" 
               onClick={() => setDeleteDialogOpen(false)}
-              className="flex-1"
+              className="flex-1 text-base"
             >
               Cancel
             </Button>
@@ -599,7 +570,7 @@ export default function ChatPage() {
                     setDeleteDialogOpen(false)
                   })
               }}
-              className="flex-1 bg-red-500 text-white hover:bg-red-600"
+              className="flex-1 text-base bg-red-500 text-white hover:bg-red-600"
             >
               Yes, delete chat
             </Button>
