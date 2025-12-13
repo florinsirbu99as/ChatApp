@@ -3,30 +3,27 @@
 export default function AccountActions() {
   const handleLogout = async () => {
     try {
-    console.log('[Logout] wird aufgerufen');
+      console.log('[Logout] wird aufgerufen');
       const res = await fetch('/api/logout', { method: 'POST' })
       console.log('[Logout] Antwort:', res.status);
       if (res.ok) {
         localStorage.removeItem('userid');
         document.cookie = 'userhash=; Max-Age=0; path=/;'
-        // Go back to the login page
         window.location.href = '/'
       } else {
         const data = await res.json().catch(() => ({}))
         alert('Error while logging out: ' + (data?.error || 'Unknown error'))
-        // As a fallback, still send the user to login
         window.location.href = '/'
       }
     } catch (err) {
       console.error('Logout-Error:', err)
       alert('Network error while logging out.')
-      // Fallback redirect to login even if request errored
       window.location.href = '/'
     }
   }
 
   const handleDeregister = async () => {
-    if (!confirm('Do you really want to delete your account?')) return
+    if (!confirm('Do you really want to delete your account? This action cannot be undone.')) return
 
     try {
       const res = await fetch('/api/deregister', { method: 'POST' })
@@ -34,34 +31,31 @@ export default function AccountActions() {
         localStorage.removeItem('userid');
         document.cookie = 'userhash=; Max-Age=0; path=/;'
         alert('Account deleted.')
-        // After account deletion, go to login
         window.location.href = '/'
       } else {
         const data = await res.json().catch(() => ({}))
         alert('Error deleting your account: ' + (data?.error || 'Unknown error'))
-        // Safe fallback redirect
         window.location.href = '/'
       }
     } catch (err) {
       console.error('Deregistration-error:', err)
-      alert('Netzwork-error while deleting.')
-      // Fallback redirect on error
+      alert('Network error while deleting.')
       window.location.href = '/'
     }
   }
 
   return (
-    <div className="flex flex-col gap-3 mt-6">
+    <div className="space-y-3">
       <button
         onClick={handleLogout}
-        className="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+        className="w-full bg-slate-200 text-slate-900 text-base py-3 rounded-lg font-semibold hover:bg-slate-300 transition-colors"
       >
         Log out
       </button>
 
       <button
         onClick={handleDeregister}
-        className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+        className="w-full bg-red-500 text-white text-base py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
       >
         Delete account
       </button>

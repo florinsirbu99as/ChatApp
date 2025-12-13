@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button'
 import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import InviteUserModal from '@/components/InviteUserModal'
-import { useToast } from '@/contexts/ToastContext'  
-import { Camera, MapPin, ArrowLeft, MoreVertical } from "lucide-react"
+import { useToast } from '@/contexts/ToastContext'
+import { useOfflineQueue } from '@/hooks/useOfflineQueue'
+import { Camera, MapPin, ArrowLeft, MoreVertical, Wifi, WifiOff } from "lucide-react"
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -29,6 +30,7 @@ export default function ChatPage() {
   const [chatname, setChatname] = useState<string>('')
   const [chatRole, setChatRole] = useState<'owner' | 'member' | null>(null)
   const { addToast } = useToast() 
+  const { queue, isOnline, addToQueue, retryMessage, removeFromQueue, hasPending } = useOfflineQueue()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
@@ -133,21 +135,33 @@ export default function ChatPage() {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!messageText.trim() && !capturedPhoto) return
+    
+    const photoData = capturedPhoto ? capturedPhoto.substring(22) : ''
+    
+    //wenn offline zur Queue hinzufügen
+    if (!isOnline) {
+      console.log('[Chat] Offline - adding to queue')
+      addToQueue({
+        chatid: chatid,
+        text: messageText,
+        photo: photoData,
+      })
+      
+      addToast('Nachricht wird gesendet sobald Verbindung besteht')
+      setMessageText('')
+      setCapturedPhoto(null)
+      return
+    }
+
+    // wenn Online Normal senden
     try {
       setSending(true)
-      const photoData = capturedPhoto ? capturedPhoto.substring(22) : ''
       
       const payload = {
         text: messageText,
         chatid: chatid,
         photo: photoData,
       }
-      console.log('Sende Nachricht mit Foto:', { 
-        text: payload.text,
-        chatid: payload.chatid,
-        photoSize: payload.photo.length,
-        hatFoto: !!capturedPhoto
-      })
       
       const response = await fetch('/api/messages/send', {
         method: 'POST',
@@ -158,7 +172,6 @@ export default function ChatPage() {
       })
       
       const responseData = await response.json()
-      console.log('Send message response:', responseData)
 
       if (!response.ok) {
         throw new Error(responseData.error || 'Failed to send message')
@@ -170,7 +183,6 @@ export default function ChatPage() {
           ...prev,
           [photoTimestamp]: capturedPhoto,
         }))
-        console.log(`Stored photo with key: ${photoTimestamp}`)
       }
 
       setMessageText('')
@@ -178,7 +190,21 @@ export default function ChatPage() {
       await fetchMessages()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
-      alert(`Error: ${errorMessage}`)
+      
+      // bei Netzwerkfehler zur Queue hinzufügen
+      if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
+        console.log('[Chat] Network error - adding to queue')
+        addToQueue({
+          chatid: chatid,
+          text: messageText,
+          photo: photoData,
+        })
+        addToast('Connection lost, message will be sent later')
+        setMessageText('')
+        setCapturedPhoto(null)
+      } else {
+        alert(`Error: ${errorMessage}`)
+      }
     } finally {
       setSending(false)
     }
@@ -219,7 +245,7 @@ export default function ChatPage() {
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      addToast('Geolocation wird von diesem Browser nicht unterstützt.')
+      addToast('Geolocation not supported in this browser.')
       return
     }
 
@@ -341,7 +367,7 @@ export default function ChatPage() {
               </h1>
               <p className="text-sm text-slate-500 truncate mt-0.5">
                 {(() => {
-                  // Extrahiere eindeutige User aus Messages
+                  // Extrahiere User die schon geschrieben haben aus Messages
                   const uniqueUsers = new Map<string, string>()
                   messages.forEach(msg => {
                     if (msg.userid && !uniqueUsers.has(msg.userid)) {
@@ -389,7 +415,7 @@ export default function ChatPage() {
                       Invite user
                     </button>
 
-                    {/* Leave Chat (nur für Member) */}
+                    {/* Leave Chat (nur für Members)*/}
                     {chatRole === 'member' && (
                       <>
                         <div className="my-1 border-t border-slate-100" />
@@ -436,6 +462,29 @@ export default function ChatPage() {
         className="mx-auto max-w-2xl px-4 sm:px-6 overflow-y-auto py-6"
         style={{ height: 'calc(100vh - 140px)', paddingBottom: '80px' }}
       >
+        {/* Pending Messages Indicator */}
+        {queue.filter(q => q.chatid === chatid).length > 0 && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Wifi className="h-4 w-4 text-blue-600 animate-pulse" />
+              <span className="text-sm text-blue-700 font-medium">
+                {queue.filter(q => q.chatid === chatid).length} Messages are sent...
+              </span>
+            </div>
+            {queue.filter(q => q.chatid === chatid && q.status === 'error').map(msg => (
+              <div key={msg.id} className="mt-2 flex items-center justify-between text-sm">
+                <span className="text-red-600">Error: {msg.error}</span>
+                <button
+                  onClick={() => retryMessage(msg.id)}
+                  className="text-blue-600 hover:underline"
+                >
+                  Try again
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <MessageList
           messages={messages}
           loading={loading}
@@ -469,7 +518,7 @@ export default function ChatPage() {
               
             {/* Input Bar */}
             <div className="flex items-center gap-2 py-3.5">
-              {/* Message Input with Icons */}
+              {/* Message Input mit Icons */}
               <div className="flex flex-1 min-w-0 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2.5 shadow-sm focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition">
                 <input
                   type="text"
@@ -502,7 +551,7 @@ export default function ChatPage() {
                 </button>
               </div>
 
-              {/* Send Button with Icon */}
+              {/* Send Button mit Icon */}
               <button
                 type="submit"
                 disabled={sending || (!messageText.trim() && !capturedPhoto)}
