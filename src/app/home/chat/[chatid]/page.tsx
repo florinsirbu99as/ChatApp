@@ -27,6 +27,7 @@ export default function ChatPage() {
   const params = useParams()
   const chatid = params.chatid as string
   const [chatname, setChatname] = useState<string>('')
+  const [chatRole, setChatRole] = useState<'owner' | 'member' | null>(null)
   const { addToast } = useToast() 
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -67,12 +68,15 @@ export default function ChatPage() {
 
       if (current) {
         setChatname(current.chatname);
+        setChatRole((current as any).role || null);
       } else {
         setChatname(`Chat ${chatid}`);
+        setChatRole(null);
       }
     } catch (err) {
       console.error('Error loading chat name:', err)
       setChatname(`Chat ${chatid}`)
+      setChatRole(null)
     }
   }
 
@@ -385,31 +389,39 @@ export default function ChatPage() {
                       Invite user
                     </button>
 
-                    <div className="my-1 border-t border-slate-100" />
+                    {/* Leave Chat (nur für Member) */}
+                    {chatRole === 'member' && (
+                      <>
+                        <div className="my-1 border-t border-slate-100" />
+                        <button
+                          onClick={() => {
+                            setMenuOpen(false)
+                            setLeaveDialogOpen(true)
+                          }}
+                          className="block w-full px-4 py-2 text-left text-base text-red-600 hover:bg-red-50 transition"
+                          role="menuitem"
+                        >
+                          Leave chat
+                        </button>
+                      </>
+                    )}
 
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false)
-                        setLeaveDialogOpen(true)
-                      }}
-                      className="block w-full px-4 py-2 text-left text-base text-slate-700 hover:bg-slate-50 transition"
-                      role="menuitem"
-                    >
-                      Leave chat
-                    </button>
-
-                    <div className="my-1 border-t border-slate-100" />
-
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false)
-                        setDeleteDialogOpen(true)
-                      }}
-                      className="block w-full px-4 py-2 text-left text-base text-red-600 hover:bg-red-50 transition"
-                      role="menuitem"
-                    >
-                      Delete chat
-                    </button>
+                    {/* Delete Chat (nur für Owner) */}
+                    {chatRole === 'owner' && (
+                      <>
+                        <div className="my-1 border-t border-slate-100" />
+                        <button
+                          onClick={() => {
+                            setMenuOpen(false)
+                            setDeleteDialogOpen(true)
+                          }}
+                          className="block w-full px-4 py-2 text-left text-base text-red-600 hover:bg-red-50 transition"
+                          role="menuitem"
+                        >
+                          Delete chat
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>

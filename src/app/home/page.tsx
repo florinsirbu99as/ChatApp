@@ -36,7 +36,6 @@ export default function HomePage() {
         throw new Error('Failed to fetch chats')
       }
       const data = await response.json()
-      console.log('Fetched chats data:', data)
       if (Array.isArray(data)) {
         setChats(data)
       } else if (data && typeof data === 'object') {
