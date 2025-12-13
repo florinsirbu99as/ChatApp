@@ -335,6 +335,25 @@ export default function ChatPage() {
               <h1 className="text-2xl font-bold text-slate-900 truncate">
                 {chatname}
               </h1>
+              <p className="text-sm text-slate-500 truncate mt-0.5">
+                {(() => {
+                  // Extrahiere eindeutige User aus Messages
+                  const uniqueUsers = new Map<string, string>()
+                  messages.forEach(msg => {
+                    if (msg.userid && !uniqueUsers.has(msg.userid)) {
+                      const displayName = msg.nickname || msg.usernick || msg.userid
+                      uniqueUsers.set(msg.userid, displayName)
+                    }
+                  })
+                  
+                  const names = Array.from(uniqueUsers.values())
+                  
+                  if (names.length === 0) return 'No members yet'
+                  if (names.length === 1) return names[0]
+                  
+                  return names.join(', ')
+                })()}
+              </p>
             </div>
 
             {/* Menu */}

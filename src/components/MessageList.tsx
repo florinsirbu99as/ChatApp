@@ -2,6 +2,7 @@
 
 import { Message } from '@/types/api'
 import { useState, useEffect, useRef } from 'react'
+//import { MapPin } from "lucide-react" //falls man sich entscheidet doch ein Icon zu nehmen
 
 type MessageListProps = {
   messages: Message[]
@@ -150,7 +151,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
               <div
                 style={{
                   padding: 12,
-                  backgroundColor: isMine ? '#2563eb' : '#f8f9fa', // blau vs. grau
+                  backgroundColor: isMine ? '#2563eb' : '#ffffff', 
                   color: isMine ? '#ffffff' : '#111111',
                   border: '1px solid',
                   borderColor: isMine ? '#2563eb' : '#dee2e6',
@@ -168,7 +169,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
                     {/* Zeige Foto direkt wenn es im message.photo Field gespeichert ist */}
                     <img 
                       src={message.photo} 
-                      alt="Nachrichtenanhang" 
+                      alt="Message attachment" 
                       style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
                     />
                   </div>
@@ -179,14 +180,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
                     {photoCache[message.photoid] ? (
                       <img 
                         src={photoCache[message.photoid]} 
-                        alt="Nachrichtenanhang" 
+                        alt="Message attachment" 
                         style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
                       />
                     ) : fetchedPhotos[message.photoid] && fetchedPhotos[message.photoid] !== 'error' ? (
                       /* Dann versuche vom Backend geholtes Foto */
                       <img 
                         src={fetchedPhotos[message.photoid]} 
-                        alt="Nachrichtenanhang" 
+                        alt="Message attachment" 
                         style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
                       />
                     ) : fetchedPhotos[message.photoid] === 'error' ? (
@@ -219,6 +220,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
                   <div style={{ marginBottom: message.text ? 8 : 0 }}>
                     {/* Titel der Standortnachricht */}
                     <div style={{ fontWeight: 'bold', marginBottom: 4 }}>
+                      {/*<MapPin className="h-5 w-5" />*/}
                       📍 Shared location
                     </div>
 

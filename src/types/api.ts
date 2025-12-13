@@ -3,7 +3,7 @@
 export interface Chat {
   chatid: string
   chatname: string
-  // Add other chat properties as needed
+  isAdmin: boolean
 }
 
 export interface Message {
