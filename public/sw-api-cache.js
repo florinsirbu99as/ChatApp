@@ -1,4 +1,4 @@
-const VERSION = 'v1';
+/*const VERSION = 'v1';
 const RUNTIME_CACHE = `rt-${VERSION}`;
 
 self.addEventListener('activate', (event) => {
@@ -33,4 +33,4 @@ self.addEventListener('fetch', (event) => {
       });
     }
   })());
-});
+});*/
