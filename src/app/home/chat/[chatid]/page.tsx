@@ -39,6 +39,13 @@ export default function ChatPage() {
     if (chatid) {
       fetchMessages()
       fetchChatName()
+      
+      // Set up polling to fetch messages every 2 seconds
+      const pollInterval = setInterval(() => {
+        fetchMessages()
+      }, 2000)
+      
+      return () => clearInterval(pollInterval)
     }
   }, [chatid])
 

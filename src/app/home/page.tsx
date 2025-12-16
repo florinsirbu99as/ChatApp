@@ -100,9 +100,12 @@ export default function HomePage() {
       <div className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-2xl px-4 sm:px-6 py-4 sm:py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
-              <p className="text-sm text-slate-600 mt-1">Stay connected with your chats</p>
+            <div className="flex items-center gap-3">
+              <img src="/logo.png" alt="Logo" className="h-10 w-10 object-contain" />
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900">Messages</h1>
+                <p className="text-sm text-slate-600 mt-1">Stay connected with your chats</p>
+              </div>
             </div>
           </div>
         </div>
