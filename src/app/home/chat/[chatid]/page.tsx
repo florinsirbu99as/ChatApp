@@ -10,7 +10,7 @@ import CameraModal from '@/components/CameraModal'
 import InviteUserModal from '@/components/InviteUserModal'
 import { useToast } from '@/contexts/ToastContext'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
-import { Camera, MapPin, ArrowLeft, MoreVertical, Wifi, WifiOff } from "lucide-react"
+import { Camera, MapPin, ArrowLeft, MoreVertical, Wifi, WifiOff, Paperclip, FileText, Loader2, X } from "lucide-react"
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -23,6 +23,8 @@ export default function ChatPage() {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isCameraModalOpen, setIsCameraModalOpen] = useState(false)
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+  const [attachedFile, setAttachedFile] = useState<{ url: string; name: string; size: number; type: string } | null>(null)
+  const [uploading, setUploading] = useState(false)
   const [photoCache, setPhotoCache] = useState<Record<string, string>>({})
   const router = useRouter()
   const params = useParams()
@@ -34,6 +36,7 @@ export default function ChatPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
   const messagesContainerRef = useRef<HTMLDivElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (chatid) {
@@ -141,7 +144,7 @@ export default function ChatPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!messageText.trim() && !capturedPhoto) return
+    if (!messageText.trim() && !capturedPhoto && !attachedFile) return
     
     const photoData = capturedPhoto ? capturedPhoto.substring(22) : ''
     
@@ -152,11 +155,16 @@ export default function ChatPage() {
         chatid: chatid,
         text: messageText,
         photo: photoData,
+        fileUrl: attachedFile?.url,
+        fileName: attachedFile?.name,
+        fileSize: attachedFile?.size,
+        fileType: attachedFile?.type,
       })
       
       addToast('Nachricht wird gesendet sobald Verbindung besteht')
       setMessageText('')
       setCapturedPhoto(null)
+      setAttachedFile(null)
       return
     }
 
@@ -168,6 +176,10 @@ export default function ChatPage() {
         text: messageText,
         chatid: chatid,
         photo: photoData,
+        fileUrl: attachedFile?.url,
+        fileName: attachedFile?.name,
+        fileSize: attachedFile?.size,
+        fileType: attachedFile?.type,
       }
       
       const response = await fetch('/api/messages/send', {
@@ -194,6 +206,7 @@ export default function ChatPage() {
 
       setMessageText('')
       setCapturedPhoto(null)
+      setAttachedFile(null)
       await fetchMessages()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
@@ -205,10 +218,15 @@ export default function ChatPage() {
           chatid: chatid,
           text: messageText,
           photo: photoData,
+          fileUrl: attachedFile?.url,
+          fileName: attachedFile?.name,
+          fileSize: attachedFile?.size,
+          fileType: attachedFile?.type,
         })
         addToast('Connection lost, message will be sent later')
         setMessageText('')
         setCapturedPhoto(null)
+        setAttachedFile(null)
       } else {
         alert(`Error: ${errorMessage}`)
       }
@@ -248,6 +266,42 @@ export default function ChatPage() {
       }
     }
     img.src = imageData
+  }
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Limit to 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      addToast('File too large. Max 10MB allowed.')
+      return
+    }
+
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Upload failed')
+      }
+
+      const fileData = await response.json()
+      setAttachedFile(fileData)
+      addToast(`File "${file.name}" ready to send`)
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Failed to upload file')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   const handleShareLocation = () => {
@@ -504,6 +558,14 @@ export default function ChatPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-lg">
         <div className="mx-auto max-w-2xl w-full px-3 sm:px-6">
           <form onSubmit={handleSendMessage}>
+            {/* Hidden File Input */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
             {/* Photo Preview */}
             {capturedPhoto && (
               <div className="py-2.5 flex items-center gap-2 border-b border-slate-100">
@@ -522,6 +584,30 @@ export default function ChatPage() {
                 </button>
               </div>
             )}
+
+            {/* File Preview */}
+            {attachedFile && (
+              <div className="py-2.5 flex items-center gap-3 border-b border-slate-100 bg-slate-50 px-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded bg-blue-100 text-blue-600">
+                  {attachedFile.type.startsWith('image/') ? (
+                    <img src={attachedFile.url} alt="Preview" className="h-full w-full object-cover rounded" />
+                  ) : (
+                    <FileText className="h-6 w-6" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-slate-900 truncate">{attachedFile.name}</div>
+                  <div className="text-xs text-slate-500">{(attachedFile.size / 1024).toFixed(1)} KB</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAttachedFile(null)}
+                  className="p-1 text-slate-400 hover:text-red-500 transition"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            )}
               
             {/* Input Bar */}
             <div className="flex items-center gap-2 py-3.5">
@@ -532,15 +618,31 @@ export default function ChatPage() {
                   value={messageText}
                   onChange={e => setMessageText(e.target.value)}
                   placeholder="Type your message..."
-                  disabled={sending}
+                  disabled={sending || uploading}
                   className="flex-1 min-w-0 border-none bg-transparent text-base text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
                 />
+
+                {/* File Attachment Icon */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || sending}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95 disabled:opacity-50"
+                  title="Attach file"
+                >
+                  {uploading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Paperclip className="h-5 w-5" />
+                  )}
+                </button>
 
                 {/* Kamera-Icon */}
                 <button
                   type="button"
                   onClick={() => setIsCameraModalOpen(true)}
-                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95"
+                  disabled={uploading || sending}
+                  className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 active:scale-95 disabled:opacity-50"
                   title="Take photo"
                 >
                   <Camera className="h-5 w-5" />
@@ -561,9 +663,9 @@ export default function ChatPage() {
               {/* Send Button mit Icon */}
               <button
                 type="submit"
-                disabled={sending || (!messageText.trim() && !capturedPhoto)}
+                disabled={sending || (!messageText.trim() && !capturedPhoto && !attachedFile)}
                 className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg transition shadow-sm active:scale-95 ${
-                  sending || (!messageText.trim() && !capturedPhoto)
+                  sending || (!messageText.trim() && !capturedPhoto && !attachedFile)
                     ? 'cursor-not-allowed bg-slate-300 text-slate-500'
                     : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}

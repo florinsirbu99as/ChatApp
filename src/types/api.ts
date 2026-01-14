@@ -20,6 +20,11 @@ export interface Message {
   usernick?: string
   nickname?: string
   userhash?: string
+  // Generic file attachment support
+  fileUrl?: string
+  fileName?: string
+  fileSize?: number
+  fileType?: string
   // Add other message properties as needed
 }
 

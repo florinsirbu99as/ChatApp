@@ -8,6 +8,10 @@ export interface QueuedMessage {
   text: string
   photo?: string
   position?: string
+  fileUrl?: string
+  fileName?: string
+  fileSize?: number
+  fileType?: string
   timestamp: number
   status: 'pending' | 'sending' | 'sent' | 'error'
   error?: string
@@ -92,6 +96,10 @@ export function useOfflineQueue() {
           chatid: msg.chatid,
           photo: msg.photo || '',
           position: msg.position || '',
+          fileUrl: msg.fileUrl,
+          fileName: msg.fileName,
+          fileSize: msg.fileSize,
+          fileType: msg.fileType,
         }),
       })
 

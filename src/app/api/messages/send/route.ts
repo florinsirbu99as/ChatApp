@@ -14,15 +14,27 @@ export async function POST(request: NextRequest) {
 
     // Body lesen und Felder extrahieren
     const payload = await request.json()
-    const { text, chatid, photo, position } = payload
+    const { text, chatid, photo, position, fileUrl, fileName, fileSize, fileType } = payload
 
     if (chatid == null) {
       return NextResponse.json({ error: 'chatid required' }, { status: 400 })
     }
 
+    let finalMessageText = text ?? '';
+    if (fileUrl) {
+      // Wenn ein File dabei ist, kodieren wir die Metadaten in den Text
+      finalMessageText = `[FILE_V1]${JSON.stringify({
+        url: fileUrl,
+        name: fileName,
+        size: fileSize,
+        type: fileType,
+        caption: text ?? ''
+      })}`;
+    }
+
     const params: Record<string, any> = {
       chatid: Number(chatid),          // Zahl
-      text: text ?? '',                // String (auch leer)
+      text: finalMessageText,          // String (kodiert wenn Datei)
       photo: photo ?? '',              // String (auch leer)
       position: position ?? '',        // String (auch leer)
       _t: Date.now(),                  // Timestamp als Zahl

@@ -1,4 +1,4 @@
-// src/components/MessageList.tsx
+'use client'
 
 import { Message } from '@/types/api'
 import { useState, useEffect, useRef } from 'react'
@@ -136,6 +136,29 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
     return { lat, lng }
   }
 
+  // Helper to decode HTML entities like &#34;
+  const decodeHtml = (html: string) => {
+    if (typeof window === 'undefined') return html
+    // Basic decode for JSON parsing
+    return html.replace(/&#34;/g, '"')
+               .replace(/&quot;/g, '"')
+  }
+
+  // Parses a potential file message
+  const parseFileMessage = (text?: string) => {
+    if (!text) return null
+    // The backend might return HTML-encoded entities
+    const decodedText = text.includes('&#') ? decodeHtml(text) : text
+    if (!decodedText.startsWith('[FILE_V1]')) return null
+    try {
+      const jsonStr = decodedText.substring(9)
+      return JSON.parse(jsonStr) as { url: string; name: string; size: number; type: string; caption?: string }
+    } catch (e) {
+      console.error('Failed to parse file message JSON:', e)
+      return null
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
       {loading && <p>Loading messages...</p>}
@@ -145,6 +168,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
           const isMine = currentUserId && message.userid === currentUserId
           const coords = parsePosition(message.position)
           const hasLocation = !!coords
+          const fileData = parseFileMessage(message.text)
 
           return (
             <div
@@ -251,8 +275,73 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
                   </div>
                 )}
 
-                {/* Normaler Text */}
-                {message.text && <p style={{ margin: 0 }}>{message.text}</p>}
+                {/* Dateianhang anzeigen */}
+                {fileData && (
+                  <div style={{ marginBottom: fileData.caption ? 8 : 0 }}>
+                    {fileData.type.startsWith('image/') ? (
+                      <img 
+                        src={fileData.url} 
+                        alt={fileData.name} 
+                        style={{ maxWidth: '100%', borderRadius: 6, maxHeight: 300 }}
+                      />
+                    ) : (
+                      <div 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 12, 
+                          padding: 10, 
+                          backgroundColor: isMine ? 'rgba(255,255,255,0.1)' : '#f3f4f6', 
+                          borderRadius: 6,
+                          border: '1px solid',
+                          borderColor: isMine ? 'rgba(255,255,255,0.2)' : '#e5e7eb'
+                        }}
+                      >
+                        <div style={{ fontSize: '1.5em' }}>
+                          {fileData.type.includes('pdf') ? '📄' : '📁'}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ 
+                            fontWeight: 'bold', 
+                            fontSize: '0.9em', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis', 
+                            whiteSpace: 'nowrap' 
+                          }}>
+                            {fileData.name}
+                          </div>
+                          <div style={{ fontSize: '0.8em', opacity: 0.8 }}>
+                            {(fileData.size / 1024).toFixed(1)} KB
+                          </div>
+                        </div>
+                        <a 
+                          href={fileData.url} 
+                          download={fileData.name}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '4px 8px',
+                            backgroundColor: isMine ? '#ffffff' : '#2563eb',
+                            color: isMine ? '#2563eb' : '#ffffff',
+                            borderRadius: 4,
+                            textDecoration: 'none',
+                            fontSize: '0.8em',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          Download
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Normaler Text oder Bild-Unterschrift */}
+                {fileData ? (
+                   fileData.caption && <p style={{ margin: 0 }}>{fileData.caption}</p>
+                ) : (
+                   message.text && <p style={{ margin: 0 }}>{message.text}</p>
+                )}
 
                 {(message.timestamp || message.time) && (
                   <div
