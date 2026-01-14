@@ -1,7 +1,6 @@
 import './globals.css'
 import { Inter } from 'next/font/google'
-import { ToastProvider } from '@/contexts/ToastContext'
-import SWRegistrar from './SWRegistrar'
+import { Providers } from './Providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -36,13 +35,10 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
-      <body className={`${inter.className}`}>
-        <ToastProvider>
-        <div id="__next">
-          <SWRegistrar />
+      <body className={`${inter.className}`} suppressHydrationWarning>
+        <Providers>
           {children}
-        </div>
-        </ToastProvider>
+        </Providers>
       </body>
     </html>
   )

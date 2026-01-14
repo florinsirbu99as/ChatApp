@@ -10,17 +10,24 @@ interface ToastProps {
 
 const Toast: React.FC<ToastProps> = ({ message, duration = 3000, onClose }) => {
   const [show, setShow] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const timer = setTimeout(() => {
       setShow(false)
       onClose()
     }, duration)
 
     return () => clearTimeout(timer)
-  }, [duration, onClose])
+  }, [duration, onClose, mounted])
 
-  if (!show) return null
+  if (!mounted || !show) return null
 
   return (
     <div
@@ -35,6 +42,7 @@ const Toast: React.FC<ToastProps> = ({ message, duration = 3000, onClose }) => {
         borderRadius: '4px',
         fontSize: '16px',
         boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        zIndex: 9999,
       }}
     >
       {message}

@@ -18,7 +18,14 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
   
   // Speichert vom Backend geholte Fotos, um sie anzuzeigen
   const [fetchedPhotos, setFetchedPhotos] = useState<Record<string, string>>({})
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const fetchingRef = useRef<Set<string>>(new Set()) //Verhindert doppelte Requests
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setCurrentUserId(localStorage.getItem('userid'))
+    }
+  }, [])
 
   // Hole Fotos vom Backend für Nachrichten die eine photoid haben
   useEffect(() => {
@@ -135,8 +142,7 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
       {Array.isArray(messages) &&
         messages.map((message) => {
-          const myId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
-          const isMine = myId && message.userid === myId
+          const isMine = currentUserId && message.userid === currentUserId
           const coords = parsePosition(message.position)
           const hasLocation = !!coords
 

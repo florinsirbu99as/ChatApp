@@ -1,6 +1,7 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import SWRegistrar from '../SWRegistrar';
 
 export default async function HomeLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();              
@@ -9,5 +10,8 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
   if (!token) {
     redirect('/');
   }
-  return <>{children}</>;
+  return <>
+    <SWRegistrar />
+    {children}
+  </>;
 }
