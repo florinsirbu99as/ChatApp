@@ -10,8 +10,6 @@ export async function POST(req: Request) {
     const firstname = String(form.get('firstname') || '')
     const lastname = String(form.get('lastname') || '')
 
-    console.log('[Register] Received:', { userid, firstname, lastname })
-
     if (!userid || !password || !firstname || !lastname) {
       return NextResponse.json({ error: 'Username, password, firstname and lastname required' }, { status: 400 })
     }
@@ -26,8 +24,6 @@ export async function POST(req: Request) {
       { userid, password, nickname, fullname }
     )
 
-    console.log('[Register] Success, token received')
-
     const res = NextResponse.json({ ok: true })
     res.cookies.set('token', data.token, {
       httpOnly: true,
@@ -38,7 +34,6 @@ export async function POST(req: Request) {
     })
     return res
   } catch (err) {
-    console.error('[Register] Error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Registration failed' },
       { status: 500 }

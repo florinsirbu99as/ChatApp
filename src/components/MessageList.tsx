@@ -12,10 +12,6 @@ type MessageListProps = {
 }
 
 const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, photoCache = {} }) => {
-  // Debug: log messages to see structure
-  console.log('Messages in MessageList:', messages)
-  console.log('Photo Cache:', photoCache)
-  
   // Speichert vom Backend geholte Fotos, um sie anzuzeigen
   const [fetchedPhotos, setFetchedPhotos] = useState<Record<string, string>>({})
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
@@ -39,16 +35,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
 
       if (photoIds.length === 0) return
 
-      console.log(`[MessageList] Hole ${photoIds.length} Fotos vom Backend (max 5 gleichzeitig)`)
-
       //markiere diese Fotos als "wird geladen"
       photoIds.forEach(id => fetchingRef.current.add(id))
 
      // Hole jedes Foto einzeln vom Backend via /api/photo
       for (const photoid of photoIds) {
         try {
-          console.log(`[MessageList] Hole Foto: ${photoid}`)
-          
           //Timeout für Request (10 Sekunden)
           const controller = new AbortController()
           const timeoutId = setTimeout(() => controller.abort(), 10000)
@@ -61,14 +53,12 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
           
           if (response.ok) {
             const data = await response.json()
-            console.log(`[MessageList] Foto erfolgreich geholt ${photoid}`)
             // Speichere das geholte Foto im State
             setFetchedPhotos(prev => ({
               ...prev,
               [photoid]: data.photo,
             }))
           } else {
-            console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}: ${response.status}`)
             // Markiere als fehlgeschlagen, um nicht wieder zu versuchen
             setFetchedPhotos(prev => ({
               ...prev,
@@ -76,11 +66,6 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
             }))
           }
         } catch (err) {
-          if (err instanceof Error && err.name === 'AbortError') {
-            console.error(`[MessageList] Timeout beim Abrufen des Fotos ${photoid}`)
-          } else {
-            console.error(`[MessageList] Fehler beim Abrufen des Fotos ${photoid}:`, err)
-          }
           // Markiere als fehlgeschlagen
           setFetchedPhotos(prev => ({
             ...prev,
@@ -154,7 +139,6 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
       const jsonStr = decodedText.substring(9)
       return JSON.parse(jsonStr) as { url: string; name: string; size: number; type: string; caption?: string }
     } catch (e) {
-      console.error('Failed to parse file message JSON:', e)
       return null
     }
   }

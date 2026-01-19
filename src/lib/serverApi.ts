@@ -37,9 +37,6 @@ export async function callApi<T>(
 
     url = base; // Die URL bleibt einfach - alle Daten gehen in den Body
     
-    console.log(`[API] POST zu: ${url}`);
-    console.log('[API] JSON-Payload:', payload);
-
     fetchOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,18 +45,10 @@ export async function callApi<T>(
     };
   }
 
-  console.log(`[API] ${method} Request: ${request}`, params);
-  console.log(`[API] URL:`, url);
-
   try {
     // Sende den Request an den Backend-Server
     const res = await fetch(url, fetchOptions);
-    console.log('[API] Response content-type:', res.headers.get('content-type'));
     const text = await res.text();
-    console.log('[API] Raw response text (first 1000):', text.slice(0, 1000));
-
-    console.log(`[API] Status zurück: ${res.status}`);
-    console.log(`[API] Antwort (erste 500 Zeichen):`, text.substring(0, 500));
     
     // War die Anfrage erfolgreich? (Status 200-299?)
     if (!res.ok) {
@@ -71,12 +60,10 @@ export async function callApi<T>(
       return JSON.parse(text) as T;
     } catch (parseError) {
       // Die Antwort ist keine gültige JSON - das ist ein Problem
-      console.error('[API] Die Antwort ist kein gültiges JSON:', parseError);
       throw new Error(`API "${request}" gab keine gültigen Daten zurück: ${text.substring(0, 100)}`);
     }
   } catch (err) {
     // Fehlerbehandlung - etwas ist schief gelaufen
-    console.error(`[API] Fehler bei "${request}":`, err);
     throw err; // Werfe den Fehler weiter
   }
 }

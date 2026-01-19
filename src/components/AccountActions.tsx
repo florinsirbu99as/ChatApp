@@ -3,21 +3,15 @@
 export default function AccountActions() {
   const handleLogout = async () => {
     try {
-      console.log('[Logout] wird aufgerufen');
       const res = await fetch('/api/logout', { method: 'POST' })
-      console.log('[Logout] Antwort:', res.status);
       if (res.ok) {
         localStorage.removeItem('userid');
         document.cookie = 'userhash=; Max-Age=0; path=/;'
         window.location.href = '/'
       } else {
-        const data = await res.json().catch(() => ({}))
-        alert('Error while logging out: ' + (data?.error || 'Unknown error'))
         window.location.href = '/'
       }
     } catch (err) {
-      console.error('Logout-Error:', err)
-      alert('Network error while logging out.')
       window.location.href = '/'
     }
   }
@@ -30,16 +24,11 @@ export default function AccountActions() {
       if (res.ok) {
         localStorage.removeItem('userid');
         document.cookie = 'userhash=; Max-Age=0; path=/;'
-        alert('Account deleted.')
         window.location.href = '/'
       } else {
-        const data = await res.json().catch(() => ({}))
-        alert('Error deleting your account: ' + (data?.error || 'Unknown error'))
         window.location.href = '/'
       }
     } catch (err) {
-      console.error('Deregistration-error:', err)
-      alert('Network error while deleting.')
       window.location.href = '/'
     }
   }

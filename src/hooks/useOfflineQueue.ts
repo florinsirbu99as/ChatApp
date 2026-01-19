@@ -30,7 +30,7 @@ export function useOfflineQueue() {
       try {
         setQueue(JSON.parse(stored))
       } catch (err) {
-        console.error('Failed to load queue:', err)
+        // Failed to load queue
       }
     }
 
@@ -38,12 +38,10 @@ export function useOfflineQueue() {
     setIsOnline(navigator.onLine)
     
     const handleOnline = () => {
-      console.log('[Queue] Back online!')
       setIsOnline(true)
     }
     
     const handleOffline = () => {
-      console.log('[Queue] Gone offline!')
       setIsOnline(false)
     }
 
@@ -80,8 +78,6 @@ export function useOfflineQueue() {
 
   // Versuchen eine Nachricht zu senden
   const sendMessage = useCallback(async (msg: QueuedMessage) => {
-    console.log('[Queue] Attempting to send:', msg.id)
-    
     // Status auf "sending"
     setQueue(prev => prev.map(m => 
       m.id === msg.id ? { ...m, status: 'sending' } : m
@@ -109,15 +105,11 @@ export function useOfflineQueue() {
         throw new Error(data.error || 'Failed to send')
       }
 
-      console.log('[Queue] Successfully sent:', msg.id)
-      
       //aus Queue entfernen
       setQueue(prev => prev.filter(m => m.id !== msg.id))
       
       return { success: true, data }
     } catch (error) {
-      console.error('[Queue] Failed to send:', msg.id, error)
-      
       //als Fehler markieren
       setQueue(prev => prev.map(m => 
         m.id === msg.id 
@@ -134,8 +126,6 @@ export function useOfflineQueue() {
     const pending = queue.filter(m => m.status === 'pending' || m.status === 'error')
     
     if (pending.length === 0) return
-
-    console.log(`[Queue] Processing ${pending.length} pending messages`)
 
     for (const msg of pending) {
       await sendMessage(msg)

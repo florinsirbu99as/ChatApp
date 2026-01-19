@@ -28,7 +28,7 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
   const [toasts, setToasts] = useState<string[]>([])
 
   const addToast = (message: string) => {
-    setToasts((prev) => [...prev, message])
+    // Toasts disabled as per request
   }
 
   const removeToast = () => {

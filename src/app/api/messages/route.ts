@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     const messages = await callApi<Message[]>('getmessages', params, 'GET', token)
     return NextResponse.json(messages)
   } catch (error) {
-    console.error('[API /api/messages] Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch messages' },
       { status: 500 }

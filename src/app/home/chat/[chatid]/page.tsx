@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button'
 import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import InviteUserModal from '@/components/InviteUserModal'
-import { useToast } from '@/contexts/ToastContext'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
 import { Camera, MapPin, ArrowLeft, MoreVertical, Wifi, WifiOff, Paperclip, FileText, Loader2, X } from "lucide-react"
 
@@ -31,7 +30,6 @@ export default function ChatPage() {
   const chatid = params.chatid as string
   const [chatname, setChatname] = useState<string>('')
   const [chatRole, setChatRole] = useState<'owner' | 'member' | null>(null)
-  const { addToast } = useToast() 
   const { queue, isOnline, addToQueue, retryMessage, removeFromQueue, hasPending } = useOfflineQueue()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
@@ -86,7 +84,6 @@ export default function ChatPage() {
         setChatRole(null);
       }
     } catch (err) {
-      console.error('Error loading chat name:', err)
       setChatname(`Chat ${chatid}`)
       setChatRole(null)
     }
@@ -102,7 +99,6 @@ export default function ChatPage() {
       }
       
       const data = await response.json()
-      console.log('Fetched messages:', data)
       
       const messages = data.messages || []
       const updatedPhotoCache = { ...photoCache }
@@ -121,13 +117,11 @@ export default function ChatPage() {
         if (unmatchedTimestampPhotos[index]) {
           const [timestampKey, photoData] = unmatchedTimestampPhotos[index]
           updatedPhotoCache[photoid] = photoData
-          console.log(`Matched photoid ${photoid} with stored photo from ${timestampKey}`)
         }
       })
       
       if (Object.keys(updatedPhotoCache).length > Object.keys(photoCache).length) {
         setPhotoCache(updatedPhotoCache)
-        console.log('Updated photo cache after fetch:', updatedPhotoCache)
       }
       
       setMessages(messages)
@@ -150,7 +144,6 @@ export default function ChatPage() {
     
     //wenn offline zur Queue hinzufügen
     if (!isOnline) {
-      console.log('[Chat] Offline - adding to queue')
       addToQueue({
         chatid: chatid,
         text: messageText,
@@ -161,7 +154,6 @@ export default function ChatPage() {
         fileType: attachedFile?.type,
       })
       
-      addToast('Nachricht wird gesendet sobald Verbindung besteht')
       setMessageText('')
       setCapturedPhoto(null)
       setAttachedFile(null)
@@ -213,7 +205,6 @@ export default function ChatPage() {
       
       // bei Netzwerkfehler zur Queue hinzufügen
       if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
-        console.log('[Chat] Network error - adding to queue')
         addToQueue({
           chatid: chatid,
           text: messageText,
@@ -223,12 +214,11 @@ export default function ChatPage() {
           fileSize: attachedFile?.size,
           fileType: attachedFile?.type,
         })
-        addToast('Connection lost, message will be sent later')
         setMessageText('')
         setCapturedPhoto(null)
         setAttachedFile(null)
       } else {
-        alert(`Error: ${errorMessage}`)
+        // Error
       }
     } finally {
       setSending(false)
@@ -259,10 +249,7 @@ export default function ChatPage() {
       if (ctx) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
         const compressedImage = canvas.toDataURL('image/png')
-        const sizeInKB = (compressedImage.length / 1024).toFixed(2)
-        console.log(`Komprimiertes Foto: ${sizeInKB} KB`)
         setCapturedPhoto(compressedImage)
-        addToast(`Foto bereit zum Senden (${sizeInKB} KB)`)
       }
     }
     img.src = imageData
@@ -274,7 +261,6 @@ export default function ChatPage() {
 
     // Limit to 10MB
     if (file.size > 10 * 1024 * 1024) {
-      addToast('File too large. Max 10MB allowed.')
       return
     }
 
@@ -295,9 +281,8 @@ export default function ChatPage() {
 
       const fileData = await response.json()
       setAttachedFile(fileData)
-      addToast(`File "${file.name}" ready to send`)
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Failed to upload file')
+      // Failed to upload file
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -306,30 +291,14 @@ export default function ChatPage() {
 
   const handleShareLocation = () => {
     if (!navigator.geolocation) {
-      addToast('Geolocation not supported in this browser.')
       return
     }
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        console.log("Geolocation details:", {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy_in_meters: pos.coords.accuracy,
-          altitudeAccuracy: pos.coords.altitudeAccuracy,
-          timestamp: new Date(pos.timestamp).toISOString()
-        });
-
         const accuracy = pos.coords.accuracy;
         const lat = pos.coords.latitude
         const lng = pos.coords.longitude
-
-        if (accuracy !== null && accuracy > 200) { 
-          const accuracyKm = (accuracy / 1000).toFixed(1);
-          addToast(
-            `Location accuracy is about ${accuracyKm} km (${Math.round(accuracy)}m).`
-          );
-        }
 
         try {
           setSending(true)
@@ -347,7 +316,6 @@ export default function ChatPage() {
           })
 
           const responseData = await response.json()
-          console.log('Send location response:', responseData)
 
           if (!response.ok) {
             throw new Error(responseData.error || 'Failed to send location')
@@ -355,26 +323,12 @@ export default function ChatPage() {
           await fetchMessages()
           
         } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : 'Failed to send location'
-          addToast('Error: ' + errorMessage)
         } finally {
           setSending(false)
         }
       },
       (error) => {
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            addToast('Location permission denied.')
-            break
-          case error.POSITION_UNAVAILABLE:
-            addToast('Location unavailable.')
-            break
-          case error.TIMEOUT:
-            addToast('Location request timed out.')
-            break
-          default:
-            addToast('Unknown location error.')
-        }
+        // Handle error silently or with appropriate UI (not popup)
       },
       {
         enableHighAccuracy: true,
@@ -689,7 +643,7 @@ export default function ChatPage() {
         onClose={() => setInviteDialogOpen(false)}
         chatid={chatid}
         onInviteSent={(message) => {
-          addToast(message)
+          // Invite sent
         }}
       />
 
@@ -714,10 +668,9 @@ export default function ChatPage() {
               onClick={() => {
                 leaveChat(chatid)
                   .then(() => {
-                    addToast('Left chat successfully')
                     router.push('/home')
                   })
-                  .catch(err => addToast('Error: ' + err.message))
+                  .catch(err => { /* Handle error */ })
                   .finally(() => {
                     setLeaveDialogOpen(false)
                   })
@@ -751,10 +704,9 @@ export default function ChatPage() {
               onClick={() => {
                 deleteChat(chatid)
                   .then(() => {
-                    addToast('Deleted chat successfully')
                     router.push('/home')
                   })
-                  .catch(err => addToast('Error: ' + err.message))
+                  .catch(err => { /* Handle error */ })
                   .finally(() => {
                     setDeleteDialogOpen(false)
                   })

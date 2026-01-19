@@ -34,10 +34,8 @@ export default function InvitesList({ onInviteAccepted }: InvitesListProps) {
       }
       
       const data = await response.json()
-      console.log('Invites data:', data)
       setInvites(data.invites || data || [])
     } catch (error) {
-      console.error('Error fetching invites:', error)
     } finally {
       setLoading(false)
     }
@@ -65,7 +63,6 @@ export default function InvitesList({ onInviteAccepted }: InvitesListProps) {
       //Benachrichtigt Parent-Komponente
       onInviteAccepted()
     } catch (error: any) {
-      alert('Error: ' + error.message)
     } finally {
       setJoining(null)
     }

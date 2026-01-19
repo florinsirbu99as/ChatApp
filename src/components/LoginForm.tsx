@@ -20,10 +20,10 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
         localStorage.setItem('userid', username);
         window.location.href = '/home'
       } else {
-        alert('Error: ' + (data.error || 'Unknown error'));
+        // Handle error silently
       }
     } catch (err) {
-      alert('Network error or server unavailable.')
+      // Handle error silently
     }
   };
   

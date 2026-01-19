@@ -23,7 +23,6 @@ export async function POST() {
     })
     return res
   } catch (err) {
-    console.error('[Deregister] Error:', err)
     const res = NextResponse.json({ error: 'Account deletion failed' }, { status: 502 })
     //Auch bei Fehler Cookie entfernen
     res.cookies.set('token', '', {

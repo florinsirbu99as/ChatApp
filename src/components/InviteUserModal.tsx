@@ -41,10 +41,8 @@ export default function InviteUserModal({
       }
       
       const data = await response.json()
-      console.log('Profiles data:', data)
       setProfiles(data.profiles || data || [])
     } catch (error) {
-      console.error('Error fetching profiles:', error)
       onInviteSent('Failed to load users')
     } finally {
       setLoading(false)
@@ -55,14 +53,10 @@ export default function InviteUserModal({
     try {
       setInviting(profile.userid)
 
-      console.log('Inviting profile:', profile)
-
       // Nutze den userhash als Invite-Code (so wie es bei dir funktioniert hat)
       // bevorzugt userhash, sonst hash (wie im Log zu sehen)
         const invitedHash = profile.userhash || (profile as any).hash
 
-
-      console.log('Using invitedHash:', invitedHash)
 
       if (!invitedHash) {
         onInviteSent('Error: This user has no invite code.')

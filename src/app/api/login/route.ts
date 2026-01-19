@@ -7,8 +7,6 @@ export async function POST(req: Request) {
     const userid = String(form.get('userid') || '')
     const password = String(form.get('password') || '')
 
-    console.log('[Login] Attempt for:', userid)
-
     if (!userid || !password) {
       return NextResponse.json({ error: 'Username and password required' }, { status: 400 })
     }
@@ -18,9 +16,6 @@ export async function POST(req: Request) {
       { userid, password }      
       // 'GET' ist der Default in serverApi.ts
     )
-    console.log('[Login] Success, token received')
-    console.log('[Login] token:', data.token)
-    console.log('[Login] hash:', (data as any).hash)
 
 
     const res = NextResponse.json({ ok: true })
@@ -41,7 +36,6 @@ export async function POST(req: Request) {
         
     return res
   } catch (err) {
-    console.error('[Login] Error:', err)
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Login failed' },
       { status: 500 }

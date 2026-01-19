@@ -19,8 +19,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'photoid erforderlich' }, { status: 400 })
     }
 
-    console.log(`[API /api/photo] Hole Foto mit ID: ${photoid}`)
-
     const apiBaseUrl = process.env.API_BASE_URL
     if (!apiBaseUrl) {
       throw new Error('API_BASE_URL nicht konfiguriert')
@@ -35,12 +33,10 @@ export async function GET(request: NextRequest) {
     })
 
     const photoUrl = `${apiBaseUrl}?${params.toString()}`
-    console.log(`[API /api/photo] Rufe Backend auf: ${photoUrl}`)
 
     const response = await fetch(photoUrl)
 
     if (!response.ok) {
-      console.error(`[API /api/photo] Backend hat ${response.status} zurückgegeben`)
       return NextResponse.json(
         { error: `Backend hat ${response.status} zurückgegeben` },
         { status: response.status }
@@ -49,7 +45,6 @@ export async function GET(request: NextRequest) {
 
     // Hole Bild-Blob vom Backend
     const imageBlob = await response.blob()
-    console.log(`[API /api/photo] Bild-Blob empfangen, Größe: ${imageBlob.size} bytes`)
 
     // Konvertiere Blob zu Base64 für JSON-Antwort
     const arrayBuffer = await imageBlob.arrayBuffer()
@@ -58,7 +53,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ photo: dataUrl })
   } catch (error) {
-    console.error('[API /api/photo] Fehler:', error)
     const errorMessage = error instanceof Error ? error.message : 'Fehler beim Abrufen des Fotos'
     return NextResponse.json(
       { error: errorMessage },

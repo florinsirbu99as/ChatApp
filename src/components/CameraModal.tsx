@@ -41,8 +41,6 @@ export default function CameraModal({ isOpen, onClose, onCapture }: CameraModalP
           setIsCameraActive(true) // Markiere Kamera als aktiv
         }
       } catch (err) {
-        console.error('Fehler beim Zugriff auf Kamera:', err)
-        alert('Kamera konnte nicht aufgerufen werden. Bitte überprüfe die Berechtigungen.')
       }
     }
 

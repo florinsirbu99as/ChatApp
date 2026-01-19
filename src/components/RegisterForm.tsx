@@ -9,12 +9,10 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
     const confirm = (document.querySelector('input[placeholder="Confirm your password"]') as HTMLInputElement)?.value;
 
     if (!username || !firstName || !lastName || !password) {
-      alert("Please fill in all required fields.");
       return;
     }
 
     if (password !== confirm) {
-      alert("Passwords do not match!");
       return;
     }
 
@@ -32,14 +30,12 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
 
       const data = await res.json();
       if (res.ok) {
-        alert("You created an account! You can now sign in.");
         window.location.reload(); 
       } else {
-        alert("Error: " + (data.error || "Unknown error"));
+        // Handle error
       }
     } catch (err) {
-      console.error("Registration failed:", err);
-      alert("Network error or server unavailable.");
+      // Handle error
     }
   };
 

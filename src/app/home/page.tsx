@@ -44,7 +44,6 @@ export default function HomePage() {
         setChats([])
       }
     } catch (err) {
-      console.error('Error fetching chats:', err)
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
@@ -74,7 +73,7 @@ export default function HomePage() {
       setDialogOpen(false)
       setChatName('')
     } catch (e: any) {
-      alert(e.message)
+      // Error occurred
     }
   }
 

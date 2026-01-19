@@ -12,7 +12,6 @@ export async function POST() {
       await callApi('logout', {}, undefined, token)
     }
   } catch (err) {
-    console.error('Logout API call failed:', err)
     // Continue to clear cookie even if API call fails
   }
 

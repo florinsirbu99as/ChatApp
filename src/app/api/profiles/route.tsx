@@ -17,7 +17,6 @@ export async function GET() {
 
     return NextResponse.json(profiles)
   } catch (error) {
-    console.error('[API /api/profiles] Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch profiles' },
       { status: 500 }

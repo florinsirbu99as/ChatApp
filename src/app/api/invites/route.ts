@@ -16,7 +16,6 @@ export async function GET() {
 
     return NextResponse.json(invites)
   } catch (error) {
-    console.error('[API /api/invites] Error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch invites' },
       { status: 500 }
