@@ -13,7 +13,7 @@ export default function HomePage() {
       <div className="bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-md px-4 sm:px-6 py-6 sm:py-8">
           <div className="text-center">
-            <img src="/logo.png" alt="ChatApp Logo" className="h-48 w-48 mx-auto mb-1 object-contain" />
+            <img src="/logo.png" alt="ChatApp Logo" className="h-40 w-40 mx-auto mb-1 object-contain" />
             <h1 className="text-3xl font-bold text-slate-900 mb-2">ChatApp</h1>
             <p className="text-sm text-slate-600">
               Connect with friends and start chatting
