@@ -38,6 +38,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (chatid) {
+      setIsInitialLoad(true)
       fetchMessages()
       fetchChatName()
       
@@ -61,11 +62,19 @@ export default function ChatPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
+
   useEffect(() => {
     if (messagesContainerRef.current && messages.length > 0) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight
+      const container = messagesContainerRef.current
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100 // 100px threshold
+
+      if (isInitialLoad || isAtBottom) {
+        container.scrollTop = container.scrollHeight
+        if (isInitialLoad) setIsInitialLoad(false)
+      }
     }
-  }, [messages])
+  }, [messages, isInitialLoad])
 
   async function fetchChatName() {
     try {
@@ -91,7 +100,9 @@ export default function ChatPage() {
 
   const fetchMessages = async () => {
     try {
-      setLoading(true)
+      if (messages.length === 0) {
+        setLoading(true)
+      }
       const response = await fetch(`/api/messages?chatid=${chatid}&fromid=0`)
       
       if (!response.ok) {
@@ -199,6 +210,7 @@ export default function ChatPage() {
       setMessageText('')
       setCapturedPhoto(null)
       setAttachedFile(null)
+      setIsInitialLoad(true)
       await fetchMessages()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send message'
@@ -320,6 +332,7 @@ export default function ChatPage() {
           if (!response.ok) {
             throw new Error(responseData.error || 'Failed to send location')
           }
+          setIsInitialLoad(true)
           await fetchMessages()
           
         } catch (err) {

@@ -145,7 +145,6 @@ const MessageList: React.FC<MessageListProps> = ({ messages, loading, error, pho
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
-      {loading && <p>Loading messages...</p>}
       {error && <p style={{ color: 'red' }}>Error: {error}</p>}
       {Array.isArray(messages) &&
         messages.map((message) => {
