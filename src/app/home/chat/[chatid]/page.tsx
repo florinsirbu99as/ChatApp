@@ -111,11 +111,11 @@ export default function ChatPage() {
       
       const data = await response.json()
       
-      const messages = data.messages || []
+      const fetchedMessages = data.messages || []
       const updatedPhotoCache = { ...photoCache }
       
       const myId = typeof window !== 'undefined' ? localStorage.getItem('userid') : null
-      const unmatchedPhotoids = messages
+      const unmatchedPhotoids = fetchedMessages
         .filter((msg: Message) => msg.photoid && msg.userid === myId && !updatedPhotoCache[msg.photoid])
         .map((msg: Message) => msg.photoid)
         .filter((photoid: string) => photoid !== undefined)
@@ -135,7 +135,7 @@ export default function ChatPage() {
         setPhotoCache(updatedPhotoCache)
       }
       
-      setMessages(messages)
+      setMessages(fetchedMessages)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
