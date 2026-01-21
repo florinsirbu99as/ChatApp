@@ -65,16 +65,25 @@ export default function ChatPage() {
   }, [])
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const prevMessagesLength = useRef(messages.length)
 
   useEffect(() => {
     if (messagesContainerRef.current && messages.length > 0) {
       const container = messagesContainerRef.current
-      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100 // 100px threshold
-
-      if (isInitialLoad || isAtBottom) {
+      
+      // Check if we should scroll down: 
+      // 1. Initial load
+      // 2. User was already at/near the bottom (within 100px)
+      // 3. New message was sent by the current user (length increased and user is likely at bottom)
+      const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 150
+      const messagesIncreased = messages.length > prevMessagesLength.current
+      
+      if (isInitialLoad || (messagesIncreased && isAtBottom)) {
         container.scrollTop = container.scrollHeight
         if (isInitialLoad) setIsInitialLoad(false)
       }
+      
+      prevMessagesLength.current = messages.length
     }
   }, [messages, isInitialLoad])
 
@@ -137,7 +146,10 @@ export default function ChatPage() {
         setPhotoCache(updatedPhotoCache)
       }
       
-      setMessages(fetchedMessages)
+      // Only update if there are new messages or content changed
+      if (JSON.stringify(fetchedMessages) !== JSON.stringify(messages)) {
+        setMessages(fetchedMessages)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
