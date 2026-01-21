@@ -5,7 +5,7 @@
 ## ✨ Features
 
 - **Real-Time Communication**: Send and receive messages instantly.
-- **Media Sharing**: Take photos directly with your camera or attach files to your messages.
+- **Media Sharing**: Take photos directly with your camera or attach files (Images, PDFs, Word docs) to your messages.
 - **Location Sharing**: Share your current location with one click.
 - **Offline Support**: Queue messages while offline; they'll be sent automatically once you're back online.
 - **PWA Ready**: Install it on your home screen for a full-screen, app-like experience.

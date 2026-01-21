@@ -275,6 +275,7 @@ export default function ChatPage() {
 
     // Limit to 10MB
     if (file.size > 10 * 1024 * 1024) {
+      addToast('File too large (max 10MB)', 'error')
       return
     }
 
@@ -295,8 +296,9 @@ export default function ChatPage() {
 
       const fileData = await response.json()
       setAttachedFile(fileData)
-    } catch (err) {
-      // Failed to upload file
+      addToast('File attached', 'success')
+    } catch (err: any) {
+      addToast(err.message || 'Failed to upload file', 'error')
     } finally {
       setUploading(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -532,6 +534,7 @@ export default function ChatPage() {
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
+              accept="image/*,application/pdf"
               className="hidden"
             />
 
