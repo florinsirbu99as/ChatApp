@@ -1,6 +1,6 @@
 {
-  "name": "ChatApp - Mobile Chat Application",
-  "short_name": "ChatApp",
+  "name": "SendIt - Mobile Chat Application",
+  "short_name": "SendIt",
   "description": "Real-time chat application optimized for mobile devices",
   "start_url": "/",
   "display": "standalone",

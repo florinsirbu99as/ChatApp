@@ -7,8 +7,10 @@ import InvitesList from '@/components/InvitesList'
 import type { Chat } from '@/types/api'
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/contexts/ToastContext'
 
 export default function HomePage() {
+  const { addToast } = useToast()
   const [chats, setChats] = useState<Chat[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,11 +71,12 @@ export default function HomePage() {
     if (!chatName.trim()) return
     try {
       await createChat(chatName)
+      addToast('Chat created successfully!', 'success')
       await fetchChats()
       setDialogOpen(false)
       setChatName('')
     } catch (e: any) {
-      // Error occurred
+      addToast(e.message || 'Failed to create chat', 'error')
     }
   }
 
@@ -128,11 +131,18 @@ export default function HomePage() {
           <h2 className="text-2xl font-semibold text-slate-900 mb-4">Your Chats</h2>
 
           {loading && (
-            <div className="text-center py-8">
-              <div className="inline-block">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-              </div>
-              <p className="text-sm text-slate-600 mt-3">Loading your chats...</p>
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-pulse">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-slate-200 rounded-full"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-slate-200 rounded w-1/3"></div>
+                      <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 

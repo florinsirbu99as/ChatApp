@@ -1,9 +1,18 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext';
+
 export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
+  const { addToast } = useToast();
+
   const handleLogin = async () => {
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement).value;
     const password = (document.querySelector('input[type="password"]') as HTMLInputElement).value;
+
+    if (!username || !password) {
+      addToast('Please enter your username and password', 'error');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('userid', username);
@@ -18,12 +27,13 @@ export default function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: 
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('userid', username);
+        addToast('Logged in successfully!', 'success');
         window.location.href = '/home'
       } else {
-        // Handle error silently
+        addToast(data.message || 'Invalid username or password', 'error');
       }
     } catch (err) {
-      // Handle error silently
+      addToast('An error occurred. Please try again later.', 'error');
     }
   };
   

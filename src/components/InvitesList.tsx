@@ -70,10 +70,15 @@ export default function InvitesList({ onInviteAccepted }: InvitesListProps) {
 
   if (loading) {
     return (
-      <div className="bg-white border border-slate-200 rounded-lg p-4">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <p className="text-slate-600 mt-2 text-sm">Loading invites...</p>
+      <div className="bg-white border border-slate-200 rounded-lg p-4 mb-6">
+        <div className="animate-pulse flex space-x-4">
+          <div className="rounded-full bg-slate-200 h-10 w-10"></div>
+          <div className="flex-1 space-y-4 py-1">
+            <div className="h-4 bg-slate-200 rounded w-3/4"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-slate-200 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     )

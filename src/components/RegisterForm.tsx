@@ -1,6 +1,10 @@
 'use client'
 
+import { useToast } from '@/contexts/ToastContext';
+
 export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
+  const { addToast } = useToast();
+
   const handleRegister = async () => {
     const username = (document.querySelector('input[name="username"]') as HTMLInputElement)?.value;
     const firstName = (document.querySelector('input[placeholder="John"]') as HTMLInputElement)?.value;
@@ -9,10 +13,12 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
     const confirm = (document.querySelector('input[placeholder="Confirm your password"]') as HTMLInputElement)?.value;
 
     if (!username || !firstName || !lastName || !password) {
+      addToast('Please fill in all fields', 'error');
       return;
     }
 
     if (password !== confirm) {
+      addToast('Passwords do not match', 'error');
       return;
     }
 
@@ -30,12 +36,13 @@ export default function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () 
 
       const data = await res.json();
       if (res.ok) {
+        addToast('Registration successful!', 'success');
         window.location.reload(); 
       } else {
-        // Handle error
+        addToast(data.message || 'Registration failed', 'error');
       }
     } catch (err) {
-      // Handle error
+      addToast('An error occurred during registration', 'error');
     }
   };
 

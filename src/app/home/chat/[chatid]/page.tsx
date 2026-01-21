@@ -9,9 +9,11 @@ import MessageList from '@/components/MessageList'
 import CameraModal from '@/components/CameraModal'
 import InviteUserModal from '@/components/InviteUserModal'
 import { useOfflineQueue } from '@/hooks/useOfflineQueue'
+import { useToast } from '@/contexts/ToastContext'
 import { Camera, MapPin, ArrowLeft, MoreVertical, Wifi, WifiOff, Paperclip, FileText, Loader2, X } from "lucide-react"
 
 export default function ChatPage() {
+  const { addToast } = useToast()
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -656,7 +658,11 @@ export default function ChatPage() {
         onClose={() => setInviteDialogOpen(false)}
         chatid={chatid}
         onInviteSent={(message) => {
-          // Invite sent
+          if (message.startsWith('Error')) {
+            addToast(message, 'error')
+          } else {
+            addToast(message, 'success')
+          }
         }}
       />
 
@@ -681,9 +687,12 @@ export default function ChatPage() {
               onClick={() => {
                 leaveChat(chatid)
                   .then(() => {
+                    addToast('Left chat successfully', 'success')
                     router.push('/home')
                   })
-                  .catch(err => { /* Handle error */ })
+                  .catch(err => { 
+                    addToast('Error leaving chat', 'error')
+                  })
                   .finally(() => {
                     setLeaveDialogOpen(false)
                   })
@@ -717,9 +726,12 @@ export default function ChatPage() {
               onClick={() => {
                 deleteChat(chatid)
                   .then(() => {
+                    addToast('Chat deleted successfully', 'success')
                     router.push('/home')
                   })
-                  .catch(err => { /* Handle error */ })
+                  .catch(err => { 
+                    addToast('Error deleting chat', 'error')
+                  })
                   .finally(() => {
                     setDeleteDialogOpen(false)
                   })
